@@ -6,18 +6,17 @@ import { FormField } from "@/components/form-field";
 import { API_AUTH_ENDPOINTS, API_BASE_URL } from "@/lib/config";
 
 type LoginFormState = {
-  email: string;
+  username: string;
   password: string;
 };
 
 type FormErrors = Partial<Record<keyof LoginFormState, string>>;
 
 const initialState: LoginFormState = {
-  email: "",
+  username: "",
   password: "",
 };
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const getEndpoint = (path: string) => {
   if (!API_BASE_URL) {
@@ -35,10 +34,8 @@ export default function LoginPage() {
   const validate = (): boolean => {
     const validationErrors: FormErrors = {};
 
-    if (!formState.email.trim()) {
-      validationErrors.email = "E-mail is verplicht.";
-    } else if (!EMAIL_PATTERN.test(formState.email.trim())) {
-      validationErrors.email = "Voer een geldig e-mailadres in.";
+    if (!formState.username.trim()) {
+      validationErrors.username = "Gebruikersnaam is verplicht.";
     }
 
     if (!formState.password) {
@@ -78,15 +75,18 @@ export default function LoginPage() {
 
     setIsLoading(true);
     try {
+      // Build payload and log it so the developer can inspect what's being posted
+      const payload = {
+        username: formState.username.trim(),
+        password: formState.password,
+      };
+
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          email: formState.email.trim(),
-          password: formState.password,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
@@ -130,13 +130,13 @@ export default function LoginPage() {
         >
           <FormField
             id="email"
-            label="E-mailadres"
-            type="email"
-            value={formState.email}
-            onChange={handleChange("email")}
-            error={errors.email}
+            label="Gebruikersnaam"
+            type="text"
+            value={formState.username}
+            onChange={handleChange("username")}
+            error={errors.username}
             required
-            placeholder="naam@avans.nl"
+            placeholder="Bijvoorbeeld: Noor"
           />
 
           <FormField
