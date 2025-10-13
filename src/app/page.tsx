@@ -1,103 +1,190 @@
-import Image from "next/image";
+import Link from "next/link";
+
+const highlights = [
+  {
+    title: "Compass Check",
+    description:
+      "Ontdek jouw interesses met interactieve vragenlijsten die inzicht geven in vaardigheden en ambities.",
+  },
+  {
+    title: "Programma Match",
+    description:
+      "Vergelijk opleidingen op basis van jouw voorkeuren en ontvang aanbevelingen op maat.",
+  },
+  {
+    title: "Coach Connect",
+    description:
+      "Plan gesprekken met Avans-coaches en ervaar persoonlijke begeleiding bij het maken van je keuze.",
+  },
+];
+
+const steps = [
+  {
+    label: "1",
+    title: "Verken",
+    description:
+      "Beantwoord vragen en verken verhalen van studenten die jou voorgingen.",
+  },
+  {
+    label: "2",
+    title: "Vergelijk",
+    description: "Bekijk welke opleidingen passen bij jouw profiel en ambities.",
+  },
+  {
+    label: "3",
+    title: "Verbind",
+    description:
+      "Leg contact met coaches of meld je aan voor proefstudeerdagen bij Avans.",
+  },
+];
+
+const testimonials = [
+  {
+    name: "Mila",
+    study: "Creative Business",
+    quote:
+      "Dankzij Avans Keuze Compass vond ik snel de opleiding die echt bij me past. De verhalen en begeleiding gaven vertrouwen.",
+  },
+  {
+    name: "Dani",
+    study: "Data Science en AI",
+    quote:
+      "De persoonlijke tips maakten een wereld van verschil. Ik wist precies welke volgende stappen ik moest zetten.",
+  },
+];
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="space-y-24">
+      <section className="page-container mt-10 grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+        <div className="space-y-6">
+          <span className="badge">Start jouw ontdekkingstocht</span>
+          <h1 className="text-4xl font-bold tracking-tight text-[var(--foreground)] sm:text-5xl">
+            Jouw richting, jouw toekomst. Kies met vertrouwen dankzij Avans Keuze Compass.
+          </h1>
+          <p className="max-w-2xl text-lg text-[var(--muted)]">
+            We begeleiden je stap voor stap naar een studie die aansluit bij wie jij bent. Met praktische tools, eerlijke verhalen en persoonlijke coaching vind je jouw ideale pad binnen Avans Hogeschool.
+          </p>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/register"
+              className="inline-flex items-center justify-center rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-semibold uppercase tracking-wide text-[var(--accent-foreground)] transition hover:shadow-lg"
+            >
+              Start gratis
+            </Link>
+            <Link
+              href="/Stories"
+              className="inline-flex items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)] px-6 py-3 text-sm font-semibold uppercase tracking-wide text-[var(--foreground)] transition hover:border-transparent hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)]"
+            >
+              Ontdek verhalen
+            </Link>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div className="relative overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-gradient-to-br from-[var(--card)] via-[#fde8e8] to-transparent p-8 shadow-xl dark:via-[#2b1920]">
+          <div className="absolute -top-10 -right-6 h-32 w-32 rounded-full bg-[var(--accent)] opacity-40 blur-3xl" />
+          <div className="absolute -bottom-8 -left-6 h-32 w-32 rounded-full bg-[var(--accent)] opacity-20 blur-3xl" />
+          <div className="relative space-y-6">
+            <h2 className="text-2xl font-semibold text-[var(--foreground)]">Avans navigator</h2>
+            <p className="text-sm text-[var(--muted)]">
+              Met realtime inzichten, persoonlijke aanbevelingen en directe coaching stuur jij je eigen route.
+            </p>
+            <ul className="space-y-4 text-sm">
+              {highlights.map((item) => (
+                <li
+                  key={item.title}
+                  className="rounded-[var(--radius)] border border-[var(--border)] bg-[color-mix(in srgb, var(--accent) 12%, transparent)] px-4 py-3 text-[var(--foreground)] shadow-sm backdrop-blur-sm"
+                >
+                  <p className="text-sm font-semibold">{item.title}</p>
+                  <p className="text-xs text-[var(--muted)]">{item.description}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="inspiratie" className="bg-[color-mix(in srgb, var(--accent) 6%, transparent)] py-16">
+        <div className="page-container space-y-10">
+          <div className="flex flex-col gap-3 text-center">
+            <h2 className="text-3xl font-semibold text-[var(--foreground)] sm:text-4xl">Inspiratie die bij jou past</h2>
+            <p className="mx-auto max-w-2xl text-sm text-[var(--muted)]">
+              Krijg heldere inzichten, ontdek nieuwe opleidingen en leer van studenten die dezelfde route hebben bewandeld.
+            </p>
+          </div>
+          <div className="grid gap-6 md:grid-cols-3">
+            {highlights.map((item) => (
+              <div key={item.title} className="card-surface p-6 text-left">
+                <h3 className="text-xl font-semibold text-[var(--foreground)]">{item.title}</h3>
+                <p className="mt-3 text-sm text-[var(--muted)]">{item.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="coaching" className="page-container space-y-10">
+        <div className="flex flex-col gap-3">
+          <h2 className="text-3xl font-semibold text-[var(--foreground)] sm:text-4xl">Zo werkt het</h2>
+          <p className="max-w-3xl text-sm text-[var(--muted)]">
+            We combineren data met persoonlijke begeleiding. In drie duidelijke stappen krijg jij overzicht, focus en actiepunten om zeker te kiezen.
+          </p>
+        </div>
+        <div className="grid gap-6 lg:grid-cols-3">
+          {steps.map((step) => (
+            <div key={step.label} className="card-surface space-y-4 p-6">
+              <span className="badge w-fit">{step.label}</span>
+              <h3 className="text-xl font-semibold text-[var(--foreground)]">{step.title}</h3>
+              <p className="text-sm text-[var(--muted)]">{step.description}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="bg-[color-mix(in srgb, var(--accent) 8%, transparent)] py-16">
+        <div className="page-container space-y-10">
+          <div className="flex flex-col gap-3 text-center">
+            <h2 className="text-3xl font-semibold text-[var(--foreground)] sm:text-4xl">Wat studenten zeggen</h2>
+            <p className="mx-auto max-w-2xl text-sm text-[var(--muted)]">
+              Echte verhalen van Avans-studenten die hun keuze met Compass maakten.
+            </p>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2">
+            {testimonials.map((item) => (
+              <figure key={item.name} className="card-surface flex h-full flex-col justify-between gap-6 p-6">
+                <blockquote className="text-base font-medium text-[var(--foreground)]">
+                  {`"${item.quote}"`}
+                </blockquote>
+                <figcaption className="text-sm font-semibold text-[var(--muted)]">
+                  {item.name} - {item.study}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="contact" className="page-container">
+        <div className="card-surface flex flex-col items-center gap-6 overflow-hidden px-8 py-12 text-center sm:px-12">
+          <h2 className="text-3xl font-semibold text-[var(--foreground)] sm:text-4xl">Klaar voor jouw volgende stap?</h2>
+          <p className="max-w-2xl text-sm text-[var(--muted)]">
+            Maak een account aan, plan een gesprek met een Avans-coach en krijg direct toegang tot gepersonaliseerde tools. Jij bepaalt het tempo, wij staan naast je.
+          </p>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/login"
+              className="inline-flex items-center justify-center rounded-full border border-transparent bg-[var(--foreground)] px-6 py-3 text-sm font-semibold uppercase tracking-wide text-[var(--background)] transition hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)]"
+            >
+              Inloggen
+            </Link>
+            <Link
+              href="/register"
+              className="inline-flex items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)] px-6 py-3 text-sm font-semibold uppercase tracking-wide text-[var(--foreground)] transition hover:border-transparent hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)]"
+            >
+              Nu starten
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
