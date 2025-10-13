@@ -326,7 +326,7 @@ export default function Home() {
                   
                   <div className="relative space-y-6">
                     <blockquote className="text-lg font-medium leading-relaxed text-[var(--foreground)]">
-                      "{item.quote}"
+                      &quot;{item.quote}&quot;
                     </blockquote>
                     
                     <div className="flex items-center gap-4">
