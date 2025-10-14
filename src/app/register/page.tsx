@@ -2,8 +2,11 @@
 
 import { ChangeEvent, FormEvent, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FormField } from "@/components/form-field";
 import { API_AUTH_ENDPOINTS, API_BASE_URL } from "@/lib/config";
+import { useAuth } from "@/contexts/auth-context";
+import { getUserFromToken } from "@/lib/jwt";
 
 type RegisterFormState = {
   username : string;
@@ -35,6 +38,8 @@ export default function RegisterPage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const { login } = useAuth();
+  const router = useRouter();
 
   const validate = (): boolean => {
     const validationErrors: FormErrors = {};
@@ -113,8 +118,49 @@ export default function RegisterPage() {
         throw new Error(message);
       }
 
-      setStatusMessage("Je account is aangemaakt. Je kunt nu inloggen.");
-      setFormState(initialState);
+      const registeredUser = await response.json();
+      
+      // Registration successful, now log the user in automatically
+      setStatusMessage("Account aangemaakt! Je wordt ingelogd...");
+      
+      // Auto-login: make a login request with the same credentials
+      const loginEndpoint = getEndpoint(API_AUTH_ENDPOINTS.login);
+      if (!loginEndpoint) {
+        throw new Error("Kan niet automatisch inloggen.");
+      }
+
+      const loginResponse = await fetch(loginEndpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: formState.username.trim(),
+          password: formState.password,
+        }),
+      });
+
+      if (!loginResponse.ok) {
+        // Registration succeeded but login failed - redirect to login page
+        setStatusMessage("Account aangemaakt! Redirecting naar login...");
+        setTimeout(() => {
+          router.push("/login");
+        }, 2000);
+        return;
+      }
+
+      const loginData = await loginResponse.json();
+
+      if (loginData.access_token) {
+        // Decode JWT to get user info
+        const user = getUserFromToken(loginData.access_token);
+        
+        login(loginData.access_token, user);
+        setStatusMessage("Welkom! Je wordt doorgestuurd...");
+        setTimeout(() => {
+          router.push("/modules");
+        }, 1000);
+      }
     } catch (error) {
       const message =
         error instanceof Error

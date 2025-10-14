@@ -2,8 +2,11 @@
 
 import { ChangeEvent, FormEvent, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FormField } from "@/components/form-field";
 import { API_AUTH_ENDPOINTS, API_BASE_URL } from "@/lib/config";
+import { useAuth } from "@/contexts/auth-context";
+import { getUserFromToken } from "@/lib/jwt";
 
 type LoginFormState = {
   username: string;
@@ -30,6 +33,8 @@ export default function LoginPage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
+  const router = useRouter();
 
   const validate = (): boolean => {
     const validationErrors: FormErrors = {};
@@ -99,8 +104,24 @@ export default function LoginPage() {
         throw new Error(message);
       }
 
-      setStatusMessage("Succes! Je bent ingelogd.");
-      setFormState(initialState);
+      const data = await response.json();
+      
+      // API returns access_token, not token
+      if (!data.access_token) {
+        throw new Error("Geen access token ontvangen van de server.");
+      }
+
+      // Decode JWT to get user info
+      try {
+        const user = getUserFromToken(data.access_token);
+        login(data.access_token, user);
+        setStatusMessage("Succes! Je wordt doorgestuurd...");
+        setTimeout(() => {
+          router.push("/modules");
+        }, 1000);
+      } catch (decodeError) {
+        throw new Error("Kan gebruikersgegevens niet decoderen.");
+      }
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Er ging iets mis tijdens het inloggen.";
