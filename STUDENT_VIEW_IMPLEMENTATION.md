@@ -10,7 +10,8 @@
 
 ### 2. **Dynamic Navigation**
 - Navbar now hides Login/Register when user is authenticated
-- Shows "Modules" link and "Logout" button for logged-in users
+- Shows "Modules" and "Favorieten" links for logged-in users
+- Shows "Logout" button with user info
 - User-friendly mobile menu with authentication state
 
 ### 3. **Modules Page (`/modules`)**
@@ -38,8 +39,17 @@ Comprehensive module information view:
 - Back navigation to modules list
 - Call-to-action for contacting about the module
 
-### 5. **Protected Routes**
-Both modules pages check authentication:
+### 5. **Favorites Page (`/favorites`)** 🆕
+Dedicated page for favorited modules:
+- **View all favorites** - all modules you've starred
+- **Quick access** - link in navbar and on modules page
+- **Remove favorites** - click the star to unfavorite
+- **Empty state** - helpful message when no favorites yet
+- **Direct navigation** - view details of any favorite
+- **Call-to-action** - contact button to proceed with enrollment
+
+### 6. **Protected Routes**
+All student pages check authentication:
 - Redirect to `/login` if not authenticated
 - Loading states while checking auth
 - Error handling for failed requests
@@ -67,10 +77,12 @@ src/
 │   ├── layout.tsx       # Updated with AuthProvider
 │   ├── login/
 │   │   └── page.tsx     # Updated to use AuthContext
-│   └── modules/
-│       ├── page.tsx     # Modules list page
-│       └── [id]/
-│           └── page.tsx # Module detail page
+│   ├── modules/
+│   │   ├── page.tsx     # Modules list page
+│   │   └── [id]/
+│   │       └── page.tsx # Module detail page
+│   └── favorites/
+│       └── page.tsx     # Favorites page (NEW)
 ├── components/
 │   └── navbar.tsx       # Updated with auth-aware navigation
 └── lib/
@@ -85,6 +97,7 @@ The app uses the following endpoints from your API:
 - `GET /vkm` - List all modules (with optional filters)
 - `GET /vkm/:id` - Get single module details
 - `POST /vkm/:id/favorite` - Toggle favorite status
+- `GET /vkm/favorites` - Get all favorited modules
 
 ### Authentication
 - `POST /auth/login` - User login
@@ -114,16 +127,17 @@ Example: `/vkm?location=Breda&level=NLQF6&studyCredit=30&isActive=true`
 - Cannot access `/modules` routes
 
 ### For Authenticated Students:
-- See Home, Stories, and Modules in navbar
+- See Home, Stories, Modules, and Favorieten in navbar
 - See Logout button with username tooltip
 - Can browse all modules
 - Can search and filter modules
 - Can favorite/unfavorite modules
+- Can view favorited modules on dedicated page
 - Can view detailed module information
 
 ## 🚀 Next Steps (Optional Enhancements)
 
-1. **Favorites Page** - Dedicated page showing only favorited modules
+1. ~~**Favorites Page**~~ ✅ COMPLETED - Dedicated page showing only favorited modules
 2. **Recommendations** - Use `/vkm/recommendations/me` endpoint
 3. **Module Comparison** - Compare multiple modules side-by-side
 4. **User Profile** - Edit profile, change password
@@ -142,6 +156,9 @@ Example: `/vkm?location=Breda&level=NLQF6&studyCredit=30&isActive=true`
 - [ ] Clear filters → all modules shown again
 - [ ] Click favorite → module favorited (⭐)
 - [ ] Click unfavorite → module unfavorited (☆)
+- [ ] Navigate to favorites page → see all favorited modules
+- [ ] Remove favorite from favorites page → module removed
+- [ ] Empty favorites page → helpful message shown
 - [ ] Click "Bekijk details" → detail page shown
 - [ ] View module details → all information displayed
 - [ ] Click back button → return to modules list
@@ -164,6 +181,7 @@ You now have a fully functional student view with:
 - ✅ Comprehensive modules browser with search & filters
 - ✅ Detailed module view
 - ✅ Favorites functionality
+- ✅ Dedicated favorites page
 - ✅ Responsive design
 - ✅ Error handling
 - ✅ TypeScript type safety

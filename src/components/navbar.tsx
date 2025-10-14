@@ -18,6 +18,7 @@ const AUTH_LINKS = [
 
 const STUDENT_LINKS = [
   { href: "/modules", label: "Modules", icon: "📚" },
+  { href: "/favorites", label: "Favorieten", icon: "⭐" },
 ];
 
 export const Navbar = () => {
@@ -218,6 +219,9 @@ export const Navbar = () => {
                       )}
                       {link.href === "/modules" && (
                         <span className="text-xs opacity-70">Bekijk alle VKM modules</span>
+                      )}
+                      {link.href === "/favorites" && (
+                        <span className="text-xs opacity-70">Jouw favoriete modules</span>
                       )}
                       {link.href === "/login" && (
                         <span className="text-xs opacity-70">Toegang tot je account</span>

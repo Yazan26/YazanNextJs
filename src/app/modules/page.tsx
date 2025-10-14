@@ -166,6 +166,18 @@ export default function ModulesPage() {
         <p className="text-[var(--foreground-muted)]">
           Bekijk, filter en favoriseer modules die bij jou passen
         </p>
+        
+        {/* Link to Favorites */}
+        <div className="pt-2">
+          <Link
+            href="/favorites"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--accent)] transition hover:gap-3"
+          >
+            <span className="text-base">⭐</span>
+            Bekijk mijn favorieten
+            <span>→</span>
+          </Link>
+        </div>
       </div>
 
       {/* Search and Filters */}

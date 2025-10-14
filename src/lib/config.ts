@@ -19,6 +19,8 @@ export const API_AUTH_ENDPOINTS = {
   // /vkm/recommendations/me?limit=2
 
   toggleFavorite: "/vkm/:id/favorite", // append a unique module by id: /vkm/{id}/favorite
+  
+  favorites: "/vkm/favorites", // get all favorited modules
 
 
 } as const;
