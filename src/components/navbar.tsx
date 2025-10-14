@@ -4,18 +4,34 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "./theme-toggle";
+import { useAuth } from "@/contexts/auth-context";
 
-const NAV_LINKS = [
+const PUBLIC_LINKS = [
   { href: "/", label: "Home", icon: "🏠" },
   { href: "/Stories", label: "Verhalen", icon: "📖" },
+];
+
+const AUTH_LINKS = [
   { href: "/login", label: "Login", icon: "🔐" },
   { href: "/register", label: "Registreren", icon: "✨" },
 ];
 
+const STUDENT_LINKS = [
+  { href: "/modules", label: "Modules", icon: "📚" },
+  { href: "/favorites", label: "Favorieten", icon: "⭐" },
+];
+
 export const Navbar = () => {
   const pathname = usePathname();
+  const { isAuthenticated, logout, user } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Combine navigation links based on auth state
+  const navLinks = [
+    ...PUBLIC_LINKS,
+    ...(isAuthenticated ? STUDENT_LINKS : AUTH_LINKS),
+  ];
 
   useEffect(() => {
     const handleScroll = () => {
@@ -69,7 +85,7 @@ export const Navbar = () => {
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-3">
               <div className="flex items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--card)] p-1 shadow-md backdrop-blur-sm">
-                {NAV_LINKS.map((link) => {
+                {navLinks.map((link) => {
                   const isActive =
                     pathname === link.href ||
                     (link.href !== "/" && pathname.startsWith(link.href));
@@ -92,6 +108,16 @@ export const Navbar = () => {
                   );
                 })}
               </div>
+              {isAuthenticated && (
+                <button
+                  onClick={logout}
+                  className="flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm font-semibold text-[var(--foreground-muted)] shadow-md transition-all hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)]"
+                  title={`Uitloggen (${user?.username})`}
+                >
+                  <span className="text-base">👋</span>
+                  <span>Uitloggen</span>
+                </button>
+              )}
               <ThemeToggle />
             </div>
 
@@ -161,7 +187,7 @@ export const Navbar = () => {
           {/* Mobile Menu Links */}
           <div className="flex-1 overflow-y-auto p-6">
             <nav className="flex flex-col gap-2">
-              {NAV_LINKS.map((link, index) => {
+              {navLinks.map((link, index) => {
                 const isActive =
                   pathname === link.href ||
                   (link.href !== "/" && pathname.startsWith(link.href));
@@ -191,6 +217,12 @@ export const Navbar = () => {
                       {link.href === "/Stories" && (
                         <span className="text-xs opacity-70">Epics & User Stories</span>
                       )}
+                      {link.href === "/modules" && (
+                        <span className="text-xs opacity-70">Bekijk alle VKM modules</span>
+                      )}
+                      {link.href === "/favorites" && (
+                        <span className="text-xs opacity-70">Jouw favoriete modules</span>
+                      )}
                       {link.href === "/login" && (
                         <span className="text-xs opacity-70">Toegang tot je account</span>
                       )}
@@ -207,6 +239,23 @@ export const Navbar = () => {
                   </Link>
                 );
               })}
+              {isAuthenticated && (
+                <button
+                  onClick={() => {
+                    logout();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="group flex items-center gap-4 rounded-xl p-4 border border-[var(--border)] bg-[var(--card)] text-[var(--foreground)] hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-950 transition-all duration-300"
+                >
+                  <span className="text-2xl transition-transform group-hover:scale-110">
+                    👋
+                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-base font-semibold">Uitloggen</span>
+                    <span className="text-xs opacity-70">Tot ziens, {user?.username}</span>
+                  </div>
+                </button>
+              )}
             </nav>
           </div>
 
