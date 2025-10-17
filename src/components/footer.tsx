@@ -8,36 +8,18 @@ export const Footer = () => {
       title: "Navigatie",
       links: [
         { label: "Home", href: "/" },
-        { label: "Verhalen", href: "/Stories" },
         { label: "Login", href: "/login" },
         { label: "Registreren", href: "/register" },
       ],
     },
-    {
-      title: "Resources",
-      links: [
-        { label: "Inspiratie", href: "#inspiratie" },
-        { label: "Coaching", href: "#coaching" },
-        { label: "FAQ", href: "#faq" },
-        { label: "Contact", href: "#contact" },
-      ],
-    },
+
     {
       title: "Over Ons",
       links: [
-        { label: "Missie", href: "#missie" },
-        { label: "Team", href: "#team" },
-        { label: "Privacy", href: "#privacy" },
-        { label: "Voorwaarden", href: "#voorwaarden" },
+        { label: "privacy", href: "/privacy" },
+        { label: "Verhalen", href: "/Stories" },
       ],
     },
-  ];
-
-  const socialLinks = [
-    { icon: "📧", label: "Email", href: "mailto:info@avans.nl" },
-    { icon: "🔗", label: "LinkedIn", href: "#linkedin" },
-    { icon: "📱", label: "Instagram", href: "#instagram" },
-    { icon: "🐦", label: "Twitter", href: "#twitter" },
   ];
 
   return (
@@ -69,22 +51,9 @@ export const Footer = () => {
                 Ontdek jouw perfecte studierichting met gepersonaliseerde aanbevelingen, 
                 slimme filters en expert coaching. Jouw toekomst begint hier.
               </p>
-              
-              {/* Social Links */}
-              <div className="flex gap-2">
-                {socialLinks.map((social) => (
-                  <a
-                    key={social.label}
-                    href={social.href}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--card)] text-xl transition-all hover:border-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)] hover:shadow-lg hover:-translate-y-1"
-                    aria-label={social.label}
-                    title={social.label}
-                  >
-                    {social.icon}
-                  </a>
-                ))}
-              </div>
             </div>
+              
+              
 
             {/* Footer Links */}
             {footerLinks.map((section) => (
@@ -109,32 +78,6 @@ export const Footer = () => {
           </div>
         </div>
 
-        {/* Newsletter Section */}
-        <div className="border-t border-[var(--border)] bg-[var(--card)]/30 backdrop-blur-sm">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="text-center md:text-left">
-                <h3 className="text-lg font-bold text-[var(--foreground)] mb-1">
-                  Blijf op de hoogte
-                </h3>
-                <p className="text-sm text-[var(--foreground-muted)]">
-                  Ontvang updates over nieuwe modules en features
-                </p>
-              </div>
-              <div className="flex w-full max-w-md gap-2">
-                <input
-                  type="email"
-                  placeholder="jouw@email.nl"
-                  className="flex-1 rounded-full border-2 border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--foreground)] transition-all focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20"
-                />
-                <button className="btn btn-primary whitespace-nowrap px-6 py-2 text-sm">
-                  Aanmelden
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Bottom Bar */}
         <div className="border-t border-[var(--border)]">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
@@ -143,14 +86,8 @@ export const Footer = () => {
                 © {currentYear} Avans Keuze Compass. Alle rechten voorbehouden.
               </p>
               <div className="flex gap-6">
-                <a href="#privacy" className="transition-colors hover:text-[var(--accent)]">
+                <a href="/privacy" className="transition-colors hover:text-[var(--accent)]">
                   Privacy Policy
-                </a>
-                <a href="#terms" className="transition-colors hover:text-[var(--accent)]">
-                  Gebruiksvoorwaarden
-                </a>
-                <a href="#cookies" className="transition-colors hover:text-[var(--accent)]">
-                  Cookies
                 </a>
               </div>
             </div>

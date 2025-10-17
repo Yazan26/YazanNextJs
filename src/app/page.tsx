@@ -94,7 +94,7 @@ export default function Home() {
       {/* Animated Background Gradient */}
       <div className="fixed inset-0 -z-10 overflow-hidden">
         <div
-          className="absolute h-96 w-96 rounded-full bg-[var(--accent)] opacity-10 blur-3xl transition-transform duration-1000"
+          className="absolute h-96 w-96 rounded-full bg-[var(--accent)] opacity-10 blur-3xl transition-transform duration-700"
           style={{
             transform: `translate(${mousePosition.x / 20}px, ${mousePosition.y / 20}px)`,
             top: "10%",
@@ -102,7 +102,7 @@ export default function Home() {
           }}
         />
         <div
-          className="absolute h-96 w-96 rounded-full bg-blue-500 opacity-10 blur-3xl transition-transform duration-1000"
+          className="absolute h-96 w-96 rounded-full bg-blue-500 opacity-10 blur-3xl transition-transform duration-700"
           style={{
             transform: `translate(${-mousePosition.x / 30}px, ${-mousePosition.y / 30}px)`,
             bottom: "10%",
@@ -116,7 +116,7 @@ export default function Home() {
         {/* Hero Section */}
         <section className="section-hero relative">
           <div className="page-container">
-            <div className={`grid gap-12 lg:grid-cols-[1.2fr_0.8fr] lg:items-center transition-all duration-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}>
+            <div className={`grid gap-12 lg:grid-cols-[1.2fr_0.8fr] lg:items-center transition-all duration-4000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}>
               <div className="space-y-8">
                 <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 shadow-md animate-delay-100" style={{animation: "fadeIn 0.6s ease-out"}}>
                   <span className="relative flex h-2 w-2">

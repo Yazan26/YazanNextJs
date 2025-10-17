@@ -1,110 +1,74 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/auth-context";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { VKMModule } from "@/types/vkm";
-import { API_AUTH_ENDPOINTS, API_BASE_URL } from "@/lib/config";
+import { API_AUTH_ENDPOINTS } from "@/lib/config";
+import { apiGet, apiPost } from "@/lib/api";
+import { LoadingState } from "@/components/loading-state";
+import { useRequireAuth } from "@/hooks/use-require-auth";
 
 export default function FavoritesPage() {
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const router = useRouter();
+  const { isAuthenticated, isChecking, canAccess } = useRequireAuth();
   const [favorites, setFavorites] = useState<VKMModule[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push("/login");
-    }
-  }, [isAuthenticated, authLoading, router]);
-
   // Fetch favorites
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!canAccess) {
+      return;
+    }
 
-    const fetchFavorites = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          throw new Error("Geen authenticatie token gevonden");
-        }
+    const controller = new AbortController();
+    setIsLoading(true);
+    setError(null);
 
-        const url = `${API_BASE_URL}${API_AUTH_ENDPOINTS.favorites}`;
-        console.log("Fetching favorites from:", url); // Debug log
-        
-        const response = await fetch(url, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.message || `HTTP ${response.status}: Kan favorieten niet ophalen`);
-        }
-
-        const data = await response.json();
-        console.log("Favorites received:", data); // Debug log
+    apiGet<VKMModule[]>(API_AUTH_ENDPOINTS.favorites, { signal: controller.signal })
+      .then((data) => {
         setFavorites(data);
-      } catch (err) {
-        console.error("Error fetching favorites:", err); // Debug log
-        setError(err instanceof Error ? err.message : "Er is een fout opgetreden");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      })
+      .catch((err) => {
+        if (controller.signal.aborted) {
+          return;
+        }
 
-    fetchFavorites();
-  }, [isAuthenticated]);
+        setError(err instanceof Error ? err.message : "Er is een fout opgetreden");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => controller.abort();
+  }, [canAccess]);
 
   // Toggle favorite (remove from favorites)
   const toggleFavorite = async (moduleId: string) => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
-      const url = `${API_BASE_URL}${API_AUTH_ENDPOINTS.toggleFavorite.replace(":id", moduleId)}`;
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Kan favoriet niet wijzigen");
+      if (!canAccess) {
+        return;
       }
 
-      // Remove from local state
+      await apiPost(API_AUTH_ENDPOINTS.toggleFavorite.replace(":id", moduleId));
+
       setFavorites((prev) => prev.filter((mod) => mod.id !== moduleId));
     } catch (err) {
       console.error("Error toggling favorite:", err);
     }
   };
 
-  if (authLoading || !isAuthenticated) {
-    return (
-      <div className="page-container flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-[var(--accent)] border-r-transparent" />
-          <p className="mt-4 text-[var(--foreground-muted)]">Bezig met laden...</p>
-        </div>
-      </div>
-    );
+  if (isChecking) {
+    return <LoadingState message="Bezig met laden..." />;
+  }
+
+  if (!isAuthenticated) {
+    return null;
   }
 
   if (isLoading) {
-    return (
-      <div className="page-container flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-[var(--accent)] border-r-transparent" />
-          <p className="mt-4 text-[var(--foreground-muted)]">Favorieten laden...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Favorieten laden..." />;
   }
 
   if (error) {

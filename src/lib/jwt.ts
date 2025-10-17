@@ -30,7 +30,7 @@ export function decodeJWT(token: string): JWTPayload {
     const decoded = atob(payload);
     
     return JSON.parse(decoded) as JWTPayload;
-  } catch (error) {
+  } catch {
     throw new Error('Failed to decode JWT token');
   }
 }

@@ -4,9 +4,10 @@ import { ChangeEvent, FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormField } from "@/components/form-field";
-import { API_AUTH_ENDPOINTS, API_BASE_URL } from "@/lib/config";
+import { API_AUTH_ENDPOINTS } from "@/lib/config";
 import { useAuth } from "@/contexts/auth-context";
 import { getUserFromToken } from "@/lib/jwt";
+import { apiPost } from "@/lib/api";
 
 type LoginFormState = {
   username: string;
@@ -20,13 +21,6 @@ const initialState: LoginFormState = {
   password: "",
 };
 
-
-const getEndpoint = (path: string) => {
-  if (!API_BASE_URL) {
-    return null;
-  }
-  return `${API_BASE_URL}${path}`;
-};
 
 export default function LoginPage() {
   const [formState, setFormState] = useState<LoginFormState>(initialState);
@@ -70,14 +64,6 @@ export default function LoginPage() {
       return;
     }
 
-    const endpoint = getEndpoint(API_AUTH_ENDPOINTS.login);
-    if (!endpoint) {
-      setStatusMessage(
-        "API-configuratie ontbreekt. Voeg NEXT_PUBLIC_API_URL toe aan je .env.local."
-      );
-      return;
-    }
-
     setIsLoading(true);
     try {
       // Build payload and log it so the developer can inspect what's being posted
@@ -86,28 +72,13 @@ export default function LoginPage() {
         password: formState.password,
       };
 
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      const data = await apiPost<{ access_token?: string }>(
+        API_AUTH_ENDPOINTS.login,
+        payload,
+        { auth: false }
+      );
 
-      if (!response.ok) {
-        const payload = (await response.json().catch(() => ({}))) as {
-          message?: string;
-          error?: string;
-        };
-        const message =
-          payload.message ?? payload.error ?? "Inloggen is niet gelukt.";
-        throw new Error(message);
-      }
-
-      const data = await response.json();
-      
-      // API returns access_token, not token
-      if (!data.access_token) {
+      if (!data?.access_token) {
         throw new Error("Geen access token ontvangen van de server.");
       }
 
@@ -119,7 +90,7 @@ export default function LoginPage() {
         setTimeout(() => {
           router.push("/modules");
         }, 1000);
-      } catch (decodeError) {
+      } catch {
         throw new Error("Kan gebruikersgegevens niet decoderen.");
       }
     } catch (error) {
