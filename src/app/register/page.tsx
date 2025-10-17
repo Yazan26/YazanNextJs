@@ -4,13 +4,16 @@ import { ChangeEvent, FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormField } from "@/components/form-field";
-import { API_AUTH_ENDPOINTS, API_BASE_URL } from "@/lib/config";
+import { API_AUTH_ENDPOINTS } from "@/lib/config";
 import { useAuth } from "@/contexts/auth-context";
 import { getUserFromToken } from "@/lib/jwt";
+import { apiPost } from "@/lib/api";
 
 type RegisterFormState = {
   username : string;
   email: string;
+  firstname: string;
+  lastname: string;
   password: string;
   confirmPassword: string;
 };
@@ -19,19 +22,14 @@ type FormErrors = Partial<Record<keyof RegisterFormState, string>>;
 
 const initialState: RegisterFormState = {
   username: "",
+  firstname: "",
+  lastname: "",
   email: "",
   password: "",
   confirmPassword: "",
 };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-const getEndpoint = (path: string) => {
-  if (!API_BASE_URL) {
-    return null;
-  }
-  return `${API_BASE_URL}${path}`;
-};
 
 export default function RegisterPage() {
   const [formState, setFormState] = useState<RegisterFormState>(initialState);
@@ -52,6 +50,14 @@ export default function RegisterPage() {
       validationErrors.email = "E-mail is verplicht.";
     } else if (!EMAIL_PATTERN.test(formState.email.trim())) {
       validationErrors.email = "Voer een geldig e-mailadres in.";
+    }
+
+    if (!formState.firstname.trim()) {
+      validationErrors.firstname = "Voornaam is verplicht.";
+    }
+
+    if (!formState.lastname.trim()) {
+      validationErrors.lastname = "Achternaam is verplicht.";
     }
 
     if (!formState.password) {
@@ -86,61 +92,34 @@ export default function RegisterPage() {
       return;
     }
 
-    const endpoint = getEndpoint(API_AUTH_ENDPOINTS.register);
-    if (!endpoint) {
-      setStatusMessage(
-        "API-configuratie ontbreekt. Voeg NEXT_PUBLIC_API_URL toe aan je .env.local."
-      );
-      return;
-    }
-
     setIsLoading(true);
     try {
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      await apiPost(
+        API_AUTH_ENDPOINTS.register,
+        {
           username: formState.username.trim(),
+          firstname: formState.firstname.trim(),
+          lastname: formState.lastname.trim(),
           email: formState.email.trim(),
           password: formState.password,
-        }),
-      });
+        },
+        { auth: false }
+      );
 
-      if (!response.ok) {
-        const payload = (await response.json().catch(() => ({}))) as {
-          message?: string;
-          error?: string;
-        };
-        const message =
-          payload.message ?? payload.error ?? "Registreren is niet gelukt.";
-        throw new Error(message);
-      }
 
-      const registeredUser = await response.json();
-      
       // Registration successful, now log the user in automatically
       setStatusMessage("Account aangemaakt! Je wordt ingelogd...");
-      
-      // Auto-login: make a login request with the same credentials
-      const loginEndpoint = getEndpoint(API_AUTH_ENDPOINTS.login);
-      if (!loginEndpoint) {
-        throw new Error("Kan niet automatisch inloggen.");
-      }
 
-      const loginResponse = await fetch(loginEndpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const loginData = await apiPost<{ access_token?: string }>(
+        API_AUTH_ENDPOINTS.login,
+        {
           username: formState.username.trim(),
           password: formState.password,
-        }),
-      });
+        },
+        { auth: false }
+      );
 
-      if (!loginResponse.ok) {
+      if (!loginData?.access_token) {
         // Registration succeeded but login failed - redirect to login page
         setStatusMessage("Account aangemaakt! Redirecting naar login...");
         setTimeout(() => {
@@ -149,18 +128,13 @@ export default function RegisterPage() {
         return;
       }
 
-      const loginData = await loginResponse.json();
+      const user = getUserFromToken(loginData.access_token);
 
-      if (loginData.access_token) {
-        // Decode JWT to get user info
-        const user = getUserFromToken(loginData.access_token);
-        
-        login(loginData.access_token, user);
-        setStatusMessage("Welkom! Je wordt doorgestuurd...");
-        setTimeout(() => {
-          router.push("/modules");
-        }, 1000);
-      }
+      login(loginData.access_token, user);
+      setStatusMessage("Welkom! Je wordt doorgestuurd...");
+      setTimeout(() => {
+        router.push("/modules");
+      }, 1000);
     } catch (error) {
       const message =
         error instanceof Error
@@ -197,10 +171,26 @@ export default function RegisterPage() {
               onChange={handleChange("username")}
               error={errors.username}
               required
+              placeholder="Bijvoorbeeld: Noorjansen"
+            />
+            <FormField
+              id="firstname"
+              label="Voornaam"
+              value={formState.firstname}
+              onChange={handleChange("firstname")}
+              error={errors.firstname}
+              required
               placeholder="Bijvoorbeeld: Noor"
             />
-
-           
+            <FormField
+              id="lastname"
+              label="Achternaam"
+              value={formState.lastname}
+              onChange={handleChange("lastname")}
+              error={errors.lastname}
+              required
+              placeholder="Bijvoorbeeld: Jansen"
+            />
 
           <FormField
             id="email"
@@ -222,7 +212,7 @@ export default function RegisterPage() {
               onChange={handleChange("password")}
               error={errors.password}
               required
-              placeholder="Minimaal 10 tekens en 1 symbool"
+              placeholder="Minimaal 8 tekens en 1 symbool"
             />
             <FormField
               id="confirmPassword"

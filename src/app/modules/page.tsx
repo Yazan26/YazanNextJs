@@ -1,15 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/auth-context";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { VKMModule, VKMFilters, VKMLevel, VKMLocation, VKMStudyCredit } from "@/types/vkm";
-import { API_AUTH_ENDPOINTS, API_BASE_URL } from "@/lib/config";
+import { API_AUTH_ENDPOINTS } from "@/lib/config";
+import { apiGet, apiPost } from "@/lib/api";
+import { LoadingState } from "@/components/loading-state";
+import { useRequireAuth } from "@/hooks/use-require-auth";
+
+const applyFavoriteToggle = (moduleId: string) => (list: VKMModule[]) =>
+  list.map((mod) =>
+    mod.id === moduleId ? { ...mod, isFavorited: !mod.isFavorited } : mod
+  );
 
 export default function ModulesPage() {
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const router = useRouter();
+  const { isAuthenticated, isChecking, canAccess } = useRequireAuth();
   const [modules, setModules] = useState<VKMModule[]>([]);
   const [filteredModules, setFilteredModules] = useState<VKMModule[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -18,57 +23,40 @@ export default function ModulesPage() {
   const [filters, setFilters] = useState<VKMFilters>({
     isActive: true,
   });
-
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push("/login");
-    }
-  }, [isAuthenticated, authLoading, router]);
+  const { location, level, studyCredit, isActive } = filters;
 
   // Fetch modules
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!canAccess) {
+      return;
+    }
 
-    const fetchModules = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          throw new Error("Geen authenticatie token gevonden");
-        }
+    const controller = new AbortController();
+    setIsLoading(true);
+    setError(null);
 
-        // Build query string from filters
-        const params = new URLSearchParams();
-        if (filters.location) params.append("location", filters.location);
-        if (filters.level) params.append("level", filters.level);
-        if (filters.studyCredit) params.append("studyCredit", filters.studyCredit.toString());
-        if (filters.isActive !== undefined) params.append("isActive", filters.isActive.toString());
-
-        const queryString = params.toString();
-        const url = `${API_BASE_URL}${API_AUTH_ENDPOINTS.modules}${queryString ? `?${queryString}` : ""}`;
-
-        const response = await fetch(url, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Kan modules niet ophalen");
-        }
-
-        const data = await response.json();
+    apiGet<VKMModule[]>(API_AUTH_ENDPOINTS.modules, {
+      query: { location, level, studyCredit, isActive },
+      signal: controller.signal,
+    })
+      .then((data) => {
         setModules(data);
         setFilteredModules(data);
-      } catch (err) {
+      })
+      .catch((err) => {
+        if (controller.signal.aborted) {
+          return;
+        }
         setError(err instanceof Error ? err.message : "Er is een fout opgetreden");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
+      });
 
-    fetchModules();
-  }, [isAuthenticated, filters]);
+    return () => controller.abort();
+  }, [canAccess, location, level, studyCredit, isActive]);
 
   // Handle search
   useEffect(() => {
@@ -90,57 +78,29 @@ export default function ModulesPage() {
   // Toggle favorite
   const toggleFavorite = async (moduleId: string) => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
-      const url = `${API_BASE_URL}${API_AUTH_ENDPOINTS.toggleFavorite.replace(":id", moduleId)}`;
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Kan favoriet niet wijzigen");
+      if (!canAccess) {
+        return;
       }
 
-      // Update local state
-      setModules((prev) =>
-        prev.map((mod) =>
-          mod.id === moduleId ? { ...mod, isFavorited: !mod.isFavorited } : mod
-        )
-      );
-      setFilteredModules((prev) =>
-        prev.map((mod) =>
-          mod.id === moduleId ? { ...mod, isFavorited: !mod.isFavorited } : mod
-        )
-      );
+      await apiPost(API_AUTH_ENDPOINTS.toggleFavorite.replace(":id", moduleId));
+
+      setModules(applyFavoriteToggle(moduleId));
+      setFilteredModules(applyFavoriteToggle(moduleId));
     } catch (err) {
       console.error("Error toggling favorite:", err);
     }
   };
 
-  if (authLoading || !isAuthenticated) {
-    return (
-      <div className="page-container flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-[var(--accent)] border-r-transparent" />
-          <p className="mt-4 text-[var(--foreground-muted)]">Bezig met laden...</p>
-        </div>
-      </div>
-    );
+  if (isChecking) {
+    return <LoadingState message="Bezig met laden..." />;
+  }
+
+  if (!isAuthenticated) {
+    return null;
   }
 
   if (isLoading) {
-    return (
-      <div className="page-container flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-[var(--accent)] border-r-transparent" />
-          <p className="mt-4 text-[var(--foreground-muted)]">Modules laden...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Modules laden..." />;
   }
 
   if (error) {
