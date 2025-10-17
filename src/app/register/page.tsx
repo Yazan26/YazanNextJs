@@ -12,8 +12,8 @@ import { apiPost } from "@/lib/api";
 type RegisterFormState = {
   username : string;
   email: string;
-  firstName: string;
-  lastName: string;
+  firstname: string;
+  lastname: string;
   password: string;
   confirmPassword: string;
 };
@@ -22,8 +22,8 @@ type FormErrors = Partial<Record<keyof RegisterFormState, string>>;
 
 const initialState: RegisterFormState = {
   username: "",
-  firstName: "",
-  lastName: "",
+  firstname: "",
+  lastname: "",
   email: "",
   password: "",
   confirmPassword: "",
@@ -52,12 +52,12 @@ export default function RegisterPage() {
       validationErrors.email = "Voer een geldig e-mailadres in.";
     }
 
-    if (!formState.firstName.trim()) {
-      validationErrors.firstName = "Voornaam is verplicht.";
+    if (!formState.firstname.trim()) {
+      validationErrors.firstname = "Voornaam is verplicht.";
     }
 
-    if (!formState.lastName.trim()) {
-      validationErrors.lastName = "Achternaam is verplicht.";
+    if (!formState.lastname.trim()) {
+      validationErrors.lastname = "Achternaam is verplicht.";
     }
 
     if (!formState.password) {
@@ -98,13 +98,14 @@ export default function RegisterPage() {
         API_AUTH_ENDPOINTS.register,
         {
           username: formState.username.trim(),
-          firstName: formState.firstName.trim(),
-          lastName: formState.lastName.trim(),
+          firstname: formState.firstname.trim(),
+          lastname: formState.lastname.trim(),
           email: formState.email.trim(),
           password: formState.password,
         },
         { auth: false }
       );
+
 
       // Registration successful, now log the user in automatically
       setStatusMessage("Account aangemaakt! Je wordt ingelogd...");
@@ -173,20 +174,20 @@ export default function RegisterPage() {
               placeholder="Bijvoorbeeld: Noorjansen"
             />
             <FormField
-              id="firstName"
+              id="firstname"
               label="Voornaam"
-              value={formState.firstName}
-              onChange={handleChange("firstName")}
-              error={errors.firstName}
+              value={formState.firstname}
+              onChange={handleChange("firstname")}
+              error={errors.firstname}
               required
               placeholder="Bijvoorbeeld: Noor"
             />
             <FormField
-              id="lastName"
+              id="lastname"
               label="Achternaam"
-              value={formState.lastName}
-              onChange={handleChange("lastName")}
-              error={errors.lastName}
+              value={formState.lastname}
+              onChange={handleChange("lastname")}
+              error={errors.lastname}
               required
               placeholder="Bijvoorbeeld: Jansen"
             />
@@ -211,7 +212,7 @@ export default function RegisterPage() {
               onChange={handleChange("password")}
               error={errors.password}
               required
-              placeholder="Minimaal 10 tekens en 1 symbool"
+              placeholder="Minimaal 8 tekens en 1 symbool"
             />
             <FormField
               id="confirmPassword"
