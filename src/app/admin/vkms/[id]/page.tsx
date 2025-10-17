@@ -14,7 +14,7 @@ export default function AdminEditVKMPage() {
   const vkmId = params.id as string;
   const { isAdmin, isLoading: authLoading } = useRequireAdmin();
 
-  const [vkm, setVkm] = useState<VKMModule | null>(null);
+  // vkm state removed (we use form state for editing)
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,9 +29,8 @@ export default function AdminEditVKMPage() {
       try {
         setIsLoading(true);
         setError(null);
-        const data = await apiGet<VKMModule>(`/vkm/${vkmId}`, { signal: controller.signal });
-        setVkm(data);
-        setForm(data);
+  const data = await apiGet<VKMModule>(`/vkm/${vkmId}`, { signal: controller.signal });
+  setForm(data);
       } catch (err) {
         if (controller.signal.aborted) return;
         setError(err instanceof Error ? err.message : "Fout bij laden VKM");
@@ -50,15 +49,15 @@ export default function AdminEditVKMPage() {
     try {
       setError(null);
       // Build cleaned payload expected by the API
-      const payload: any = {
+      const payload: CreateVKMData & { isActive: boolean } = {
         name: (form.name || "").toString(),
         shortDescription: (form.shortDescription || "").toString(),
         description: (form.description || "").toString(),
         content: (form.content || "").toString(),
-        studyCredit: Number(form.studyCredit) || 15,
-        location: (form.location || "").toString(),
+  studyCredit: (Number(form.studyCredit) === 30 ? 30 : 15) as 15 | 30,
+  location: (form.location || "Den Bosch") as import("@/types/vkm").VKMLocation,
         contactId: (form.contactId || "").toString(),
-        level: (form.level || "NLQF5").toString(),
+        level: (form.level === "NLQF6" ? "NLQF6" : "NLQF5") as "NLQF5" | "NLQF6",
         learningOutcomes: (form.learningOutcomes || "").toString(),
         isActive: typeof form.isActive === "boolean" ? form.isActive : true,
       };
@@ -169,7 +168,7 @@ export default function AdminEditVKMPage() {
                 <label className="block text-sm font-medium mb-1">Studiepunten</label>
                 <select
                   value={String(form.studyCredit || 15)}
-                  onChange={(e) => setForm({ ...form, studyCredit: Number(e.target.value) as any })}
+                  onChange={(e) => setForm({ ...form, studyCredit: Number(e.target.value) as 15 | 30 })}
                   className="w-full px-4 py-2 border border-[var(--border)] rounded-lg"
                 >
                   <option value={15}>15</option>
@@ -181,7 +180,7 @@ export default function AdminEditVKMPage() {
                 <label className="block text-sm font-medium mb-1">Niveau</label>
                 <select
                   value={form.level || "NLQF5"}
-                  onChange={(e) => setForm({ ...form, level: e.target.value as any })}
+                  onChange={(e) => setForm({ ...form, level: e.target.value as "NLQF5" | "NLQF6" })}
                   className="w-full px-4 py-2 border border-[var(--border)] rounded-lg"
                 >
                   <option value="NLQF5">NLQF5</option>
@@ -193,7 +192,7 @@ export default function AdminEditVKMPage() {
                 <label className="block text-sm font-medium mb-1">Locatie</label>
                 <select
                   value={form.location || "Den Bosch"}
-                  onChange={(e) => setForm({ ...form, location: e.target.value as any })}
+                  onChange={(e) => setForm({ ...form, location: e.target.value as "Breda" | "Den Bosch" | "Tilburg" })}
                   className="w-full px-4 py-2 border border-[var(--border)] rounded-lg"
                 >
                   <option value="Breda">Breda</option>

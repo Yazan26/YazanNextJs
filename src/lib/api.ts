@@ -146,7 +146,7 @@ export function buildQueryString(params: Record<string, QueryValue>): string {
  * Admin: Get all VKMs (with optional filters)
  */
 export async function adminGetVKMs<T>(query?: Record<string, QueryValue>): Promise<T> {
-  return apiGet<T>("/vkm");
+  return apiGet<T>("/vkm", { query });
 }
 
 /**

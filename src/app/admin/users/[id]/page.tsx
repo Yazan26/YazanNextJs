@@ -38,9 +38,10 @@ export default function AdminUserDetailPage() {
       setError(null);
       const data = await adminGetUser<UserWithFavorites>(userId);
       // If backend returns only favorite IDs, resolve them to full VKM objects
-      if ((!data.favoriteVKMs || data.favoriteVKMs.length === 0) && (data as any).favoriteVkmIds && (data as any).favoriteVkmIds.length > 0) {
+      const maybeFavIds = (data as unknown as Record<string, unknown>)["favoriteVkmIds"];
+      if ((!data.favoriteVKMs || data.favoriteVKMs.length === 0) && Array.isArray(maybeFavIds) && maybeFavIds.length > 0) {
         try {
-          const ids: string[] = (data as any).favoriteVkmIds;
+          const ids = maybeFavIds as string[];
           const vkmPromises = ids.map((id) => apiGet<VKMModule>(`/vkm/${id}`));
           const vkmFull = await Promise.all(vkmPromises);
           // Map to the simplified favorite shape expected by the UI

@@ -73,7 +73,27 @@ export default function AdminVKMsPage() {
     e.preventDefault();
     try {
       setError(null);
-      await adminCreateVKM(formData);
+      // Build a cleaned payload matching CreateVKMData to avoid backend 400s
+      const payload: CreateVKMData = {
+        name: (formData.name || "").toString(),
+        shortDescription: (formData.shortDescription || "").toString(),
+        description: (formData.description || "").toString(),
+        content: (formData.content || "").toString(),
+        studyCredit: (Number(formData.studyCredit) === 30 ? 30 : 15) as 15 | 30,
+        location: (formData.location || "Den Bosch") as import("@/types/vkm").VKMLocation,
+        contactId: (formData.contactId || "").toString(),
+        level: (formData.level === "NLQF6" ? "NLQF6" : "NLQF5") as "NLQF5" | "NLQF6",
+        learningOutcomes: (formData.learningOutcomes || "").toString(),
+      };
+
+      // Try create and surface backend message when available
+      try {
+        await adminCreateVKM(payload);
+      } catch (err) {
+        // If server returned a message string, show it
+        if (err instanceof Error) throw err;
+        throw new Error("Fout bij aanmaken VKM");
+      }
       setShowCreateForm(false);
       setFormData({
         name: "",
