@@ -9,6 +9,7 @@ export interface JWTPayload {
   role?: string;
   iat: number; // issued at
   exp: number; // expiration
+  [key: string]: unknown; // Allow additional properties
 }
 
 /**
@@ -57,10 +58,12 @@ export function isTokenExpired(token: string): boolean {
  */
 export function getUserFromToken(token: string) {
   const payload = decodeJWT(token);
-  return {
+  const user = {
     id: payload.sub,
     username: payload.username,
     email: payload.email,
     role: payload.role || 'student',
   };
+
+  return user;
 }

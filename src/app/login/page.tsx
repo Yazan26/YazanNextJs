@@ -121,7 +121,7 @@ export default function LoginPage() {
           noValidate
         >
           <FormField
-            id="email"
+            id="username"
             label="Gebruikersnaam"
             type="text"
             value={formState.username}
@@ -142,20 +142,56 @@ export default function LoginPage() {
             placeholder="Minimaal 8 tekens"
           />
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="inline-flex w-full items-center justify-center rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-semibold uppercase tracking-wide text-[var(--accent-foreground)] transition hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {isLoading ? "Bezig met inloggen..." : "Inloggen"}
-          </button>
+          <div className="flex items-center justify-between gap-4">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="inline-flex flex-1 items-center justify-center rounded-full bg-[var(--accent)] px-6 py-3 text-sm font-semibold uppercase tracking-wide text-[var(--accent-foreground)] transition hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {isLoading ? "Bezig met inloggen..." : "Inloggen"}
+            </button>
+
+            <Link
+              href="/forgot-password"
+              className="text-sm text-[var(--muted)] hover:underline"
+            >
+              Wachtwoord vergeten?
+            </Link>
+          </div>
 
           {statusMessage ? (
-            <p className="text-center text-sm font-medium text-[var(--muted)]">
+            <p
+              className={`text-center text-sm font-medium ${
+                statusMessage?.toLowerCase().includes("succes")
+                  ? "text-green-600"
+                  : "text-red-500"
+              }`}
+            >
               {statusMessage}
             </p>
           ) : null}
+
+          <div className="mt-2">
+            <p className="text-center text-sm text-[var(--muted)] mb-3">
+              Of log in met een testaccount:
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="rounded-md border border-[rgba(0,0,0,0.06)] p-3 bg-white/5">
+                <p className="font-medium text-sm">Fabianopungol</p>
+                <p className="mt-1 text-xs font-mono text-[var(--muted)]">Username: Fabianopungol</p>
+                <p className="text-xs font-mono text-[var(--muted)]">Password: Fabianopungol123!</p>
+              </div>
+
+              <div className="rounded-md border border-[rgba(0,0,0,0.06)] p-3 bg-white/5">
+                <p className="font-medium text-sm">Admin</p>
+                <p className="mt-1 text-xs font-mono text-[var(--muted)]">Username: Admin</p>
+                <p className="text-xs font-mono text-[var(--muted)]">Password: Admin@Admin.com</p>
+              </div>
+            </div>
+          </div>
         </form>
+
 
         <p className="text-center text-sm text-[var(--muted)]">
           Nog geen account?{" "}

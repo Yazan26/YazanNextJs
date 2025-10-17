@@ -21,16 +21,30 @@ const STUDENT_LINKS = [
   { href: "/favorites", label: "Favorieten", icon: "⭐" },
 ];
 
+const ADMIN_LINKS = [
+  { href: "/admin", label: "Admin", icon: "👑" },
+  { href: "/admin/vkms", label: "VKM Beheer", icon: "📚" },
+  { href: "/admin/users", label: "Gebruikers", icon: "👥" },
+];
+
 export const Navbar = () => {
   const pathname = usePathname();
   const { isAuthenticated, logout, user } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Combine navigation links based on auth state
+  const isAdmin = user?.role === "admin";
+
+  // Debug logging
+
+
+  // Combine navigation links based on auth state and role
   const navLinks = [
     ...PUBLIC_LINKS,
-    ...(isAuthenticated ? STUDENT_LINKS : AUTH_LINKS),
+    ...(isAuthenticated 
+      ? (isAdmin ? ADMIN_LINKS : STUDENT_LINKS) 
+      : AUTH_LINKS
+    ),
   ];
 
   useEffect(() => {
@@ -228,6 +242,15 @@ export const Navbar = () => {
                       )}
                       {link.href === "/register" && (
                         <span className="text-xs opacity-70">Maak een nieuw account</span>
+                      )}
+                      {link.href === "/admin" && (
+                        <span className="text-xs opacity-70">Admin Dashboard</span>
+                      )}
+                      {link.href === "/admin/vkms" && (
+                        <span className="text-xs opacity-70">Beheer VKM modules</span>
+                      )}
+                      {link.href === "/admin/users" && (
+                        <span className="text-xs opacity-70">Beheer gebruikers</span>
                       )}
                     </div>
                     {isActive && (

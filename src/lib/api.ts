@@ -137,3 +137,63 @@ export function buildQueryString(params: Record<string, QueryValue>): string {
   const queryString = searchParams.toString();
   return queryString ? `?${queryString}` : "";
 }
+
+// =============================================================================
+// ADMIN API FUNCTIONS
+// =============================================================================
+
+/**
+ * Admin: Get all VKMs (with optional filters)
+ */
+export async function adminGetVKMs<T>(query?: Record<string, QueryValue>): Promise<T> {
+  return apiGet<T>("/vkm");
+}
+
+/**
+ * Admin: Create a new VKM
+ */
+export async function adminCreateVKM<T>(data: unknown): Promise<T> {
+  return apiPost<T>("/vkm", data);
+}
+
+/**
+ * Admin: Update a VKM
+ */
+export async function adminUpdateVKM<T>(id: string, data: unknown): Promise<T> {
+  return apiPut<T>(`/vkm/${id}`, data);
+}
+
+/**
+ * Admin: Delete a VKM
+ */
+export async function adminDeleteVKM<T>(id: string): Promise<T> {
+  return apiDelete<T>(`/vkm/${id}`);
+}
+
+/**
+ * Admin: Get all users
+ */
+export async function adminGetUsers<T>(): Promise<T> {
+  return apiGet<T>("/auth/users");
+}
+
+/**
+ * Admin: Get a specific user by ID
+ */
+export async function adminGetUser<T>(id: string): Promise<T> {
+  return apiGet<T>(`/auth/users/${id}`);
+}
+
+/**
+ * Admin: Update a user
+ */
+export async function adminUpdateUser<T>(id: string, data: unknown): Promise<T> {
+  return apiPut<T>(`/auth/users/${id}`, data);
+}
+
+/**
+ * Admin: Delete a user
+ */
+export async function adminDeleteUser<T>(id: string): Promise<T> {
+  return apiDelete<T>(`/auth/users/${id}`);
+}

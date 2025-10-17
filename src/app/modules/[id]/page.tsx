@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { VKMModule } from "@/types/vkm";
 import { API_AUTH_ENDPOINTS } from "@/lib/config";
@@ -13,7 +13,10 @@ export default function ModuleDetailPage({ params }: { params: { id: string } })
   const [module, setModule] = useState<VKMModule | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const moduleId = params.id;
+  // `params` may be a Promise in newer Next.js versions. Prefer unwrapping with
+  // React.use(params) when available; otherwise fall back to direct access.
+  const resolvedParams = (React as any).use ? (React as any).use(params) : params;
+  const moduleId = resolvedParams.id;
 
   useEffect(() => {
     if (!canAccess) {
