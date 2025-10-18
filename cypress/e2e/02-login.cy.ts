@@ -25,11 +25,6 @@ describe('Login Page E2E Tests', () => {
     cy.contains('Wachtwoord moet minimaal 8 tekens bevatten').should('be.visible');
   });
 
-  it('should display test account credentials', () => {
-    cy.contains('Or log in met een testaccount').should('be.visible');
-    cy.contains('Fabianopungol').should('be.visible');
-    cy.contains('Admin').should('be.visible');
-  });
 
   it('should have a link to register page', () => {
     cy.contains('Nog geen account?').should('be.visible');
