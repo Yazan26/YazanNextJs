@@ -2,15 +2,21 @@
 
 import { useMemo, useState } from "react";
 
+type FunctionalRequirement = {
+  id: string;
+  description: string;
+};
+
+type NonFunctionalRequirement = {
+  id: string;
+  category: string;
+  description: string;
+};
+
 type UserStory = {
   id: string;
   title: string;
-  description: string;
-  given: string;
-  when: string;
-  then: string;
-  priority: "high" | "medium" | "low";
-  functionalRequirements?: string[];
+  acceptanceCriteria: string[];
 };
 
 type Epic = {
@@ -21,422 +27,218 @@ type Epic = {
   color: string;
 };
 
-type RoleData = {
-  role: string;
-  icon: string;
-  description: string;
-  epics: Epic[];
-  totalStories: number;
-};
-
-const rolesData: RoleData[] = [
-  {
-    role: "Student",
-    icon: "🎓",
-    description: "Ontdek, vergelijk en kies de perfecte modules voor jouw leerpad",
-    totalStories: 9,
-    epics: [
-      {
-        id: "EP-STU-1",
-        title: "Ontdekken & Zoeken",
-        description: "Vind en filter modules op basis van jouw voorkeuren",
-        color: "bg-blue-500/10 border-blue-500/30 text-blue-600 dark:text-blue-400",
-        stories: [
-          {
-            id: "US-STU-01",
-            title: "Zoeken en filteren",
-            description: "Filter modules op thema, periode, taal en modality",
-            given: "ik ben op /modules",
-            when: "ik filter op thema, periode, taal, modality",
-            then: "dan zie ik alleen passende modules met totaalresultaat",
-            priority: "high",
-            functionalRequirements: ["FR-01"],
-          },
-          {
-            id: "US-STU-02",
-            title: "Module-details bekijken",
-            description: "Bekijk alle informatie over een specifieke module",
-            given: "ik open een resultaat",
-            when: "ik bekijk de detailpagina",
-            then: "dan zie ik omschrijving, ects, periode, taal, modality, tags en vereisten",
-            priority: "high",
-            functionalRequirements: ["FR-02"],
-          },
-          {
-            id: "US-STU-03",
-            title: "Vergelijken",
-            description: "Vergelijk meerdere modules naast elkaar",
-            given: "ik selecteer 2–4 modules",
-            when: "ik open \"Vergelijken\"",
-            then: "dan zie ik een tabel met kernvelden naast elkaar",
-            priority: "medium",
-            functionalRequirements: ["FR-03"],
-          },
-        ],
-      },
-      {
-        id: "EP-STU-2",
-        title: "Shortlist & Beslissen",
-        description: "Bewaar en beheer jouw favoriete modules",
-        color: "bg-purple-500/10 border-purple-500/30 text-purple-600 dark:text-purple-400",
-        stories: [
-          {
-            id: "US-STU-04",
-            title: "Shortlist toevoegen/verwijderen",
-            description: "Voeg modules toe aan jouw persoonlijke shortlist",
-            given: "ik bekijk een module",
-            when: "ik klik \"Toevoegen aan shortlist\"",
-            then: "dan staat hij in mijn shortlist en blijft bewaard na refresh",
-            priority: "high",
-            functionalRequirements: ["FR-04"],
-          },
-          {
-            id: "US-STU-05",
-            title: "Shortlist inzien",
-            description: "Bekijk alle modules die je hebt opgeslagen",
-            given: "ik open /shortlist",
-            when: "ik bekijk mijn lijst",
-            then: "dan zie ik alle items met link naar details",
-            priority: "high",
-            functionalRequirements: ["FR-04"],
-          },
-        ],
-      },
-      {
-        id: "EP-STU-3",
-        title: "Profiel & Beschikbaarheid",
-        description: "Personaliseer jouw ervaring met interesses en planning",
-        color: "bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400",
-        stories: [
-          {
-            id: "US-STU-06",
-            title: "Interesses en perioden instellen",
-            description: "Configureer jouw voorkeuren en beschikbaarheid",
-            given: "ik open /me",
-            when: "ik sla interesses en beschikbare perioden op",
-            then: "dan worden aanbevelingen en conflictdetectie hiermee bijgewerkt",
-            priority: "medium",
-            functionalRequirements: ["FR-05"],
-          },
-        ],
-      },
-      {
-        id: "EP-STU-4",
-        title: "Aanbevelingen",
-        description: "Ontvang gepersonaliseerde module-aanbevelingen",
-        color: "bg-yellow-500/10 border-yellow-500/30 text-yellow-600 dark:text-yellow-400",
-        stories: [
-          {
-            id: "US-STU-07",
-            title: "Aanbevelingen op basis van profiel",
-            description: "Krijg slimme suggesties gebaseerd op jouw interesses",
-            given: "ik heb interesses ingevuld",
-            when: "ik open \"Aanbevelingen\"",
-            then: "dan zie ik min. 5 modules met matchscore en reden (tags-overlap)",
-            priority: "low",
-          },
-        ],
-      },
-      {
-        id: "EP-STU-5",
-        title: "Conflictdetectie",
-        description: "Voorkom rooster- en planningsconflicten",
-        color: "bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400",
-        stories: [
-          {
-            id: "US-STU-08",
-            title: "Rooster/conflict waarschuwing",
-            description: "Krijg waarschuwingen bij planningsconflicten",
-            given: "mijn beschikbare perioden zijn P2–P3",
-            when: "ik bekijk module in P1",
-            then: "dan toont de UI een conflictwarning met alternatieven",
-            priority: "medium",
-            functionalRequirements: ["FR-06"],
-          },
-        ],
-      },
-      {
-        id: "EP-STU-6",
-        title: "Authenticatie",
-        description: "Veilig inloggen en toegang tot persoonlijke features",
-        color: "bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-400",
-        stories: [
-          {
-            id: "US-STU-09",
-            title: "Registreren & Inloggen (JWT)",
-            description: "Maak een account en log veilig in",
-            given: "ik heb accountgegevens",
-            when: "ik log in",
-            then: "dan krijg ik toegang tot protected routes en mijn shortlist",
-            priority: "high",
-            functionalRequirements: ["FR-07"],
-          },
-        ],
-      },
-    ],
-  },
-  {
-    role: "Admin",
-    icon: "⚙️",
-    description: "Beheer modules, vereisten en onderhoud de applicatie",
-    totalStories: 6,
-    epics: [
-      {
-        id: "EP-ADM-1",
-        title: "Modulebeheer (CRU)",
-        description: "Maak, lees en wijzig modules",
-        color: "bg-orange-500/10 border-orange-500/30 text-orange-600 dark:text-orange-400",
-        stories: [
-          {
-            id: "US-ADM-01",
-            title: "Module aanmaken (Create)",
-            description: "Voeg nieuwe modules toe aan het systeem",
-            given: "ik ben admin op /admin/modules/new",
-            when: "ik vul verplichte velden in",
-            then: "dan wordt de module aangemaakt en verschijnt in /modules",
-            priority: "high",
-            functionalRequirements: ["FR-08"],
-          },
-          {
-            id: "US-ADM-02",
-            title: "Module bewerken (Update)",
-            description: "Wijzig bestaande module-informatie",
-            given: "een bestaande module",
-            when: "ik wijzig bv. periode of tags",
-            then: "dan is de wijziging zichtbaar in detail en zoekresultaten",
-            priority: "high",
-            functionalRequirements: ["FR-08"],
-          },
-          {
-            id: "US-ADM-03",
-            title: "Modules lijst & zoeken (Read)",
-            description: "Bekijk en filter alle modules in het systeem",
-            given: "ik open /admin/modules",
-            when: "ik filter op periode/actief",
-            then: "dan zie ik gefilterde resultaten met status",
-            priority: "high",
-            functionalRequirements: ["FR-08"],
-          },
-        ],
-      },
-      {
-        id: "EP-ADM-2",
-        title: "Prereqs, status en tagging",
-        description: "Beheer vereisten en module-eigenschappen",
-        color: "bg-pink-500/10 border-pink-500/30 text-pink-600 dark:text-pink-400",
-        stories: [
-          {
-            id: "US-ADM-04",
-            title: "Vereisten instellen",
-            description: "Configureer prerequisites voor modules",
-            given: "een module \"AI-Intro\"",
-            when: "ik voeg \"Math-Basics\" toe als prerequisite",
-            then: "dan toont de student-view dit als vereiste",
-            priority: "medium",
-          },
-          {
-            id: "US-ADM-05",
-            title: "Activeren/deactiveren",
-            description: "Beheer zichtbaarheid van modules",
-            given: "een module",
-            when: "ik zet 'active=false'",
-            then: "dan verdwijnt hij uit student-zoekresultaten",
-            priority: "medium",
-          },
-        ],
-      },
-      {
-        id: "EP-ADM-3",
-        title: "Audit & Toezicht",
-        description: "Volg wijzigingen en beheer systeemintegriteit",
-        color: "bg-teal-500/10 border-teal-500/30 text-teal-600 dark:text-teal-400",
-        stories: [
-          {
-            id: "US-ADM-06",
-            title: "Auditlog inzien",
-            description: "Bekijk historiek van systeemwijzigingen",
-            given: "ik open /admin/audit",
-            when: "ik filter op entity=Module en datum",
-            then: "dan zie ik wie wat heeft gewijzigd met timestamp",
-            priority: "low",
-            functionalRequirements: ["FR-09"],
-          },
-        ],
-      },
-    ],
-  },
-  {
-    role: "Studiecoach",
-    icon: "💼",
-    description: "Begeleid studenten bij hun keuzes en geef persoonlijk advies",
-    totalStories: 2,
-    epics: [
-      {
-        id: "EP-COA-1",
-        title: "Coachen op keuze",
-        description: "Ondersteun studenten in hun beslissingsproces",
-        color: "bg-cyan-500/10 border-cyan-500/30 text-cyan-600 dark:text-cyan-400",
-        stories: [
-          {
-            id: "US-COA-01",
-            title: "Studentprofiel inzien",
-            description: "Bekijk studentgegevens en voorkeuren",
-            given: "ik open een student",
-            when: "ik bekijk profiel, shortlist en interesses",
-            then: "dan zie ik context en mogelijke conflicten",
-            priority: "medium",
-          },
-          {
-            id: "US-COA-02",
-            title: "Voorstel doen",
-            description: "Suggereer modules aan studenten",
-            given: "ik bekijk shortlist",
-            when: "ik voeg een module-suggestie toe met notitie",
-            then: "dan ziet de student het voorstel en kan accepteren/weigeren",
-            priority: "low",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    role: "QA/Beheer",
-    icon: "🔧",
-    description: "Monitor systeemgezondheid en technische metrics",
-    totalStories: 2,
-    epics: [
-      {
-        id: "EP-OPS-1",
-        title: "Health & Observability",
-        description: "Bewaak applicatie-status en performance",
-        color: "bg-slate-500/10 border-slate-500/30 text-slate-600 dark:text-slate-400",
-        stories: [
-          {
-            id: "US-OPS-01",
-            title: "Health-endpoint",
-            description: "Controleer API-status en uptime",
-            given: "API draait",
-            when: "ik call /health",
-            then: "dan krijg ik db: ok, uptime en versie",
-            priority: "high",
-          },
-          {
-            id: "US-OPS-02",
-            title: "Request logging",
-            description: "Volg API-verzoeken voor debugging",
-            given: "er zijn API-calls",
-            when: "ik bekijk logs",
-            then: "dan zie ik method, route, status, duration met correlationId",
-            priority: "medium",
-          },
-        ],
-      },
-    ],
-  },
+const functionalRequirements: FunctionalRequirement[] = [
+  { id: "FR1", description: "De gebruiker kan kiezen tussen lightmode en darkmode." },
+  { id: "FR2", description: "De gebruiker kan inloggen met een geregistreerd account." },
+  { id: "FR3", description: "De gebruiker kan een nieuw account registreren." },
+  { id: "FR4", description: "Een student kan een lijst met vrije keuzemodules (VKMs) bekijken." },
+  { id: "FR5", description: "Een student kan de details van een specifieke VKM bekijken (zoals titel, niveau, locatie, studiepunten, docent)." },
+  { id: "FR6", description: "Een admin kan een overzicht zien van alle studenten en VKMs." },
+  { id: "FR7", description: "Een admin kan studenten en VKMs beheren: aanmaken (Create), bekijken (Read), aanpassen (Update) en verwijderen (Delete)." },
+  { id: "FR8", description: "Gebruikers kunnen zoeken en filteren op locatie, studiepunten en niveau." },
+  { id: "FR9", description: "Een student kan VKMs toevoegen aan zijn favorietenlijst." },
+  { id: "FR10", description: "Een admin kan de favorieten van studenten bekijken." },
+  { id: "FR11", description: "De app bevat een Privacy Policy pagina met informatie over gegevensverwerking." },
 ];
 
-type CrossCuttingStory = {
-  id: string;
-  title: string;
-  description: string;
-  priority: "high" | "medium" | "low";
-  functionalRequirements?: string[];
-};
+const nonFunctionalRequirements: NonFunctionalRequirement[] = [
+  { id: "NFR1", category: "Usability", description: "De UI moet intuïtief en gebruiksvriendelijk zijn voor zowel studenten als admins." },
+  { id: "NFR2", category: "Performance", description: "Pagina's moeten binnen 2 seconden laden bij een stabiele internetverbinding." },
+  { id: "NFR3", category: "Security", description: "Wachtwoorden worden gehasht opgeslagen in de database." },
+  { id: "NFR4", category: "Security", description: "Alleen geauthenticeerde gebruikers hebben toegang tot beschermde routes." },
+  { id: "NFR5", category: "Maintainability", description: "De codebase volgt de Onion architecture (scheiding tussen controller, service, DAO, enz.)." },
+  { id: "NFR6", category: "Scalability", description: "De app moet uitbreidbaar zijn voor toekomstige functionaliteiten (zoals notificaties)." },
+  { id: "NFR7", category: "Compatibility", description: "De app werkt in light en dark mode op zowel desktop als mobiel." },
+  { id: "NFR8", category: "Reliability", description: "De app moet stabiel blijven bij meerdere gelijktijdige gebruikers." },
+  { id: "NFR9", category: "Privacy", description: "De applicatie voldoet aan de AVG (GDPR)-richtlijnen." },
+  { id: "NFR10", category: "Accessibility", description: "Kleuren en contrasten moeten toegankelijk zijn volgens WCAG 2.1-richtlijnen." },
+];
 
-const crossCuttingEpics: Array<{
-  id: string;
-  title: string;
-  color: string;
-  stories: CrossCuttingStory[];
-}> = [
+const epics: Epic[] = [
   {
-    id: "EP-SEC-1",
-    title: "Security & Validatie",
-    color: "bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400",
+    id: "Epic 1",
+    title: "Gebruikersbeheer",
+    description: "Als gebruiker wil ik kunnen registreren en inloggen zodat ik toegang heb tot mijn gepersonaliseerde omgeving.",
+    color: "bg-blue-500/10 border-blue-500/30 text-blue-600 dark:text-blue-400",
     stories: [
       {
-        id: "US-SEC-01",
-        title: "Double validation",
-        description: "G: ik post onvolledige payload → W: backend valideert DTO → T: 400 met duidelijke fout",
-        priority: "high",
+        id: "US1.1",
+        title: "Als student wil ik een account kunnen registreren, zodat ik kan inloggen in de app.",
+        acceptanceCriteria: [
+          "Gebruiker kan een nieuw account aanmaken met unieke e-mail en wachtwoord.",
+          "Foutmelding bij al bestaand e-mailadres.",
+          "Registratieformulier valideert verplichte velden.",
+        ],
       },
       {
-        id: "US-SEC-02",
-        title: "RBAC",
-        description: "G: role=student → W: ik POST /modules → T: 403; role=admin → 201",
-        priority: "high",
-        functionalRequirements: ["FR-07"],
+        id: "US1.2",
+        title: "Als gebruiker wil ik kunnen inloggen, zodat ik mijn persoonlijke data kan zien.",
+        acceptanceCriteria: [
+          "Gebruiker kan inloggen met geldig e-mailadres en wachtwoord.",
+          "Onjuiste inloggegevens geven foutmelding.",
+          "Na inloggen wordt gebruiker doorgestuurd naar de dashboardpagina.",
+        ],
+      },
+      {
+        id: "US1.3",
+        title: "Als admin wil ik gebruikers kunnen beheren (CRUD), zodat ik controle houd over studentenaccounts.",
+        acceptanceCriteria: [],
       },
     ],
   },
   {
-    id: "EP-PERF-1",
-    title: "Performance & Indexen",
-    color: "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400",
+    id: "Epic 2",
+    title: "VKM Overzicht & Details",
+    description: "Als student wil ik alle vrije keuzemodules kunnen bekijken en filteren zodat ik een geschikte module kan vinden.",
+    color: "bg-purple-500/10 border-purple-500/30 text-purple-600 dark:text-purple-400",
     stories: [
       {
-        id: "US-PERF-01",
-        title: "Indexen actief voor zoeken",
-        description: "G: modules bevat title/tags index → W: ik zoek op q + period → T: P95 < 400 ms",
-        priority: "medium",
+        id: "US2.1",
+        title: "Als student wil ik een overzicht van alle VKMs kunnen zien.",
+        acceptanceCriteria: [
+          "Lijst met VKMs wordt opgehaald uit de database.",
+          "Elke VKM toont titel, locatie, niveau en studiepunten.",
+          "Laden duurt maximaal 2 seconden.",
+        ],
+      },
+      {
+        id: "US2.2",
+        title: "Als student wil ik de details van een VKM kunnen bekijken.",
+        acceptanceCriteria: [],
+      },
+      {
+        id: "US2.3",
+        title: "Als student wil ik kunnen zoeken op naam, locatie, niveau of studiepunten.",
+        acceptanceCriteria: [],
+      },
+      {
+        id: "US2.4",
+        title: "Als student wil ik VKMs kunnen filteren op locatie, studiepunten en niveau.",
+        acceptanceCriteria: [
+          "Gebruiker kan filters toepassen op locatie, studiepunten en niveau.",
+          "Resultaten passen zich dynamisch aan.",
+          "Geen resultaten tonen melding 'Geen VKMs gevonden'.",
+        ],
+      },
+      {
+        id: "US2.5",
+        title: "Als admin wil ik VKMs kunnen aanmaken, aanpassen of verwijderen.",
+        acceptanceCriteria: [],
+      },
+    ],
+  },
+  {
+    id: "Epic 3",
+    title: "Favorietenbeheer",
+    description: "Als student wil ik mijn favoriete VKMs kunnen opslaan, zodat ik deze later snel terugvind.",
+    color: "bg-green-500/10 border-green-500/30 text-green-600 dark:text-green-400",
+    stories: [
+      {
+        id: "US3.1",
+        title: "Als student wil ik VKMs kunnen toevoegen aan mijn favorieten.",
+        acceptanceCriteria: [
+          "Student kan een VKM als favoriet markeren.",
+          "Favorieten worden opgeslagen in de database.",
+          "Dubbele favorieten worden voorkomen.",
+        ],
+      },
+      {
+        id: "US3.2",
+        title: "Als student wil ik mijn favorietenlijst kunnen bekijken.",
+        acceptanceCriteria: [],
+      },
+      {
+        id: "US3.3",
+        title: "Als admin wil ik de favorieten van studenten kunnen inzien.",
+        acceptanceCriteria: [
+          "Admin kan per student de favorietenlijst bekijken.",
+          "Data wordt correct geladen uit de database.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "Epic 4",
+    title: "Interface & Gebruikerservaring",
+    description: "Als gebruiker wil ik de app kunnen gebruiken in een visueel prettige en toegankelijke omgeving.",
+    color: "bg-yellow-500/10 border-yellow-500/30 text-yellow-600 dark:text-yellow-400",
+    stories: [
+      {
+        id: "US4.1",
+        title: "Als gebruiker wil ik kunnen wisselen tussen lightmode en darkmode.",
+        acceptanceCriteria: [
+          "Gebruiker kan wisselen tussen light en dark mode via een toggle.",
+          "Keuze blijft behouden bij herladen van de pagina.",
+        ],
+      },
+      {
+        id: "US4.2",
+        title: "Als gebruiker wil ik een consistente interface op desktop en mobiel.",
+        acceptanceCriteria: [],
+      },
+      {
+        id: "US4.3",
+        title: "Als gebruiker wil ik een Privacy Policy kunnen raadplegen.",
+        acceptanceCriteria: [
+          "Privacy Policy is bereikbaar via het menu.",
+          "Pagina bevat informatie over gegevensverwerking en AVG.",
+        ],
       },
     ],
   },
 ];
 
 export default function StoriesPage() {
-  const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [expandedEpic, setExpandedEpic] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [showCrossCutting, setShowCrossCutting] = useState(false);
+  const [activeTab, setActiveTab] = useState<"fr" | "nfr" | "epics">("epics");
 
-  const filteredRoles = useMemo(() => {
-    if (!searchQuery) return rolesData;
+  const filteredEpics = useMemo(() => {
+    if (!searchQuery) return epics;
     
     const query = searchQuery.toLowerCase();
-    return rolesData
-      .map((role) => ({
-        ...role,
-        epics: role.epics
-          .map((epic) => ({
-            ...epic,
-            stories: epic.stories.filter(
-              (story) =>
-                story.title.toLowerCase().includes(query) ||
-                story.description.toLowerCase().includes(query) ||
-                story.id.toLowerCase().includes(query) ||
-                epic.title.toLowerCase().includes(query)
-            ),
-          }))
-          .filter((epic) => epic.stories.length > 0),
+    return epics
+      .map((epic) => ({
+        ...epic,
+        stories: epic.stories.filter(
+          (story) =>
+            story.title.toLowerCase().includes(query) ||
+            story.id.toLowerCase().includes(query) ||
+            epic.title.toLowerCase().includes(query)
+        ),
       }))
-      .filter((role) => role.epics.length > 0);
+      .filter((epic) => epic.stories.length > 0);
   }, [searchQuery]);
 
-  const displayedRoles = selectedRole
-    ? filteredRoles.filter((r) => r.role === selectedRole)
-    : filteredRoles;
-
-  const totalStories = rolesData.reduce((sum, role) => sum + role.totalStories, 0);
-  const totalEpics = rolesData.reduce((sum, role) => sum + role.epics.length, 0);
+  const totalStories = epics.reduce((sum, epic) => sum + epic.stories.length, 0);
 
   return (
     <div className="page-container space-y-10">
       {/* Hero Section */}
       <div className="flex flex-col gap-6 text-center">
-        <span className="badge mx-auto">Product Roadmap</span>
+        <span className="badge mx-auto">Requirements & Product Roadmap</span>
         <h1 className="text-4xl font-bold text-[var(--foreground)] sm:text-5xl">
-          Epics & User Stories
+          Requirements, Epics & User Stories
         </h1>
         <p className="mx-auto max-w-3xl text-base text-[var(--muted)]">
-          Ontdek de volledige functionaliteit van Avans Keuze Compass, georganiseerd per gebruikersrol. 
-          Van student tot admin, van zoeken tot beheer—elk verhaal is ontworpen met jouw ervaring in gedachten.
+          Ontdek de volledige functionaliteit van Avans Keuze Compass: van functionele en niet-functionele requirements 
+          tot epics en user stories met acceptatiecriteria.
         </p>
 
         {/* Stats */}
         <div className="mx-auto flex flex-wrap items-center justify-center gap-6 text-center">
           <div className="flex flex-col gap-1">
-            <span className="text-3xl font-bold text-[var(--accent)]">{totalEpics}</span>
+            <span className="text-3xl font-bold text-[var(--accent)]">{functionalRequirements.length}</span>
+            <span className="text-xs uppercase tracking-wide text-[var(--muted)]">Functionele Requirements</span>
+          </div>
+          <div className="h-8 w-px bg-[var(--border)]" />
+          <div className="flex flex-col gap-1">
+            <span className="text-3xl font-bold text-[var(--accent)]">{nonFunctionalRequirements.length}</span>
+            <span className="text-xs uppercase tracking-wide text-[var(--muted)]">Niet-Functionele Requirements</span>
+          </div>
+          <div className="h-8 w-px bg-[var(--border)]" />
+          <div className="flex flex-col gap-1">
+            <span className="text-3xl font-bold text-[var(--accent)]">{epics.length}</span>
             <span className="text-xs uppercase tracking-wide text-[var(--muted)]">Epics</span>
           </div>
           <div className="h-8 w-px bg-[var(--border)]" />
@@ -444,282 +246,183 @@ export default function StoriesPage() {
             <span className="text-3xl font-bold text-[var(--accent)]">{totalStories}</span>
             <span className="text-xs uppercase tracking-wide text-[var(--muted)]">User Stories</span>
           </div>
-          <div className="h-8 w-px bg-[var(--border)]" />
-          <div className="flex flex-col gap-1">
-            <span className="text-3xl font-bold text-[var(--accent)]">{rolesData.length}</span>
-            <span className="text-xs uppercase tracking-wide text-[var(--muted)]">Rollen</span>
-          </div>
         </div>
       </div>
 
-      {/* Search & Filter */}
-      <div className="card-surface space-y-4 p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <input
-            type="search"
-            placeholder="Zoek op epic, story ID of keyword..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--foreground)] transition focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
-          />
+      {/* Tabs */}
+      <div className="card-surface p-6">
+        <div className="flex flex-wrap gap-2 border-b border-[var(--border)] pb-4">
           <button
             type="button"
-            onClick={() => {
-              setSelectedRole(null);
-              setSearchQuery("");
-              setExpandedEpic(null);
-            }}
-            className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm font-semibold text-[var(--muted)] transition hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)]"
+            onClick={() => setActiveTab("fr")}
+            className={`rounded-t-lg px-6 py-3 text-sm font-semibold transition ${
+              activeTab === "fr"
+                ? "border-b-2 border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]"
+                : "text-[var(--muted)] hover:bg-[var(--accent)]/5 hover:text-[var(--foreground)]"
+            }`}
           >
-            Reset filters
+            🧩 Functionele Requirements
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("nfr")}
+            className={`rounded-t-lg px-6 py-3 text-sm font-semibold transition ${
+              activeTab === "nfr"
+                ? "border-b-2 border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]"
+                : "text-[var(--muted)] hover:bg-[var(--accent)]/5 hover:text-[var(--foreground)]"
+            }`}
+          >
+            ⚙️ Niet-Functionele Requirements
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("epics")}
+            className={`rounded-t-lg px-6 py-3 text-sm font-semibold transition ${
+              activeTab === "epics"
+                ? "border-b-2 border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]"
+                : "text-[var(--muted)] hover:bg-[var(--accent)]/5 hover:text-[var(--foreground)]"
+            }`}
+          >
+            🧱 Epics & User Stories
           </button>
         </div>
+      </div>
 
-        <div className="flex flex-wrap gap-2">
-          {rolesData.map((role) => {
-            const isActive = selectedRole === role.role;
-            return (
-              <button
-                key={role.role}
-                type="button"
-                onClick={() => setSelectedRole(isActive ? null : role.role)}
-                className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                  isActive
-                    ? "border-transparent bg-[var(--accent)] text-[var(--accent-foreground)]"
-                    : "border-[var(--border)] bg-[var(--card)] text-[var(--muted)] hover:bg-[var(--accent)] hover:text-[var(--accent-foreground)]"
-                }`}
-              >
-                {role.icon} {role.role}
-              </button>
-            );
-          })}
+      {/* Content Tabs */}
+      {activeTab === "fr" && (
+        <div className="card-surface p-6">
+          <h2 className="mb-6 text-2xl font-bold text-[var(--foreground)]">🧩 Functionele Requirements</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b-2 border-[var(--border)]">
+                  <th className="px-4 py-3 text-left font-bold text-[var(--foreground)]">Nr</th>
+                  <th className="px-4 py-3 text-left font-bold text-[var(--foreground)]">Omschrijving</th>
+                </tr>
+              </thead>
+              <tbody>
+                {functionalRequirements.map((fr) => (
+                  <tr key={fr.id} className="border-b border-[var(--border)] hover:bg-[var(--accent)]/5">
+                    <td className="px-4 py-3 font-mono font-semibold text-[var(--accent)]">{fr.id}</td>
+                    <td className="px-4 py-3 text-[var(--foreground)]">{fr.description}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Roles & Epics */}
-      <div className="space-y-8">
-        {displayedRoles.map((roleData) => (
-          <div key={roleData.role} className="space-y-4">
-            {/* Role Header */}
-            <div className="card-surface p-6">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl">{roleData.icon}</span>
-                    <h2 className="text-2xl font-bold text-[var(--foreground)]">
-                      {roleData.role}
-                    </h2>
-                    <span className="rounded-full bg-[var(--accent)]/20 px-3 py-1 text-xs font-bold text-[var(--accent)]">
-                      {roleData.totalStories} stories
-                    </span>
-                  </div>
-                  <p className="text-sm text-[var(--muted)]">{roleData.description}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Epics Grid */}
-            <div className="grid gap-4 lg:grid-cols-2">
-              {roleData.epics.map((epic) => {
-                const isExpanded = expandedEpic === epic.id;
-                const completedStories = epic.stories.filter((s) => s.priority === "high").length;
-                const progress = (completedStories / epic.stories.length) * 100;
-
-                return (
-                  <div
-                    key={epic.id}
-                    className="card-surface overflow-hidden transition-all hover:shadow-lg"
-                  >
-                    {/* Epic Header */}
-                    <button
-                      type="button"
-                      onClick={() => setExpandedEpic(isExpanded ? null : epic.id)}
-                      className="w-full p-6 text-left transition"
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 space-y-3">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wide ${epic.color}`}
-                            >
-                              {epic.id}
-                            </span>
-                            <span className="text-xs text-[var(--muted)]">
-                              {epic.stories.length} stories
-                            </span>
-                          </div>
-                          <h3 className="text-lg font-bold text-[var(--foreground)]">
-                            {epic.title}
-                          </h3>
-                          <p className="text-sm text-[var(--muted)]">{epic.description}</p>
-
-                          {/* Progress Bar */}
-                          <div className="space-y-1">
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="text-[var(--muted)]">High priority</span>
-                              <span className="font-semibold text-[var(--foreground)]">
-                                {completedStories}/{epic.stories.length}
-                              </span>
-                            </div>
-                            <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--border)]">
-                              <div
-                                className="h-full rounded-full bg-[var(--accent)] transition-all duration-500"
-                                style={{ width: `${progress}%` }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-[var(--muted)] transition">
-                          {isExpanded ? "▲" : "▼"}
-                        </div>
-                      </div>
-                    </button>
-
-                    {/* Stories List */}
-                    {isExpanded && (
-                      <div className="space-y-3 border-t border-[var(--border)] bg-[var(--card)]/30 p-6">
-                        {epic.stories.map((story) => (
-                          <div
-                            key={story.id}
-                            className="space-y-3 rounded-lg border border-[var(--border)] bg-[var(--card)] p-4 transition hover:border-[var(--accent)]"
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex-1 space-y-2">
-                                <div className="flex items-center gap-2">
-                                  <span className="font-mono text-xs font-bold text-[var(--accent)]">
-                                    {story.id}
-                                  </span>
-                                  <span
-                                    className={`rounded-full px-2 py-0.5 text-xs font-semibold uppercase ${
-                                      story.priority === "high"
-                                        ? "bg-red-500/20 text-red-600 dark:text-red-400"
-                                        : story.priority === "medium"
-                                        ? "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400"
-                                        : "bg-green-500/20 text-green-600 dark:text-green-400"
-                                    }`}
-                                  >
-                                    {story.priority}
-                                  </span>
-                                </div>
-                                <h4 className="font-semibold text-[var(--foreground)]">
-                                  {story.title}
-                                </h4>
-                                <p className="text-xs text-[var(--muted)]">{story.description}</p>
-
-                                {/* Given-When-Then */}
-                                <div className="space-y-1 rounded-md bg-[var(--background)]/50 p-3 text-xs">
-                                  <div>
-                                    <span className="font-semibold text-green-600 dark:text-green-400">
-                                      Given:{" "}
-                                    </span>
-                                    <span className="text-[var(--muted)]">{story.given}</span>
-                                  </div>
-                                  <div>
-                                    <span className="font-semibold text-blue-600 dark:text-blue-400">
-                                      When:{" "}
-                                    </span>
-                                    <span className="text-[var(--muted)]">{story.when}</span>
-                                  </div>
-                                  <div>
-                                    <span className="font-semibold text-purple-600 dark:text-purple-400">
-                                      Then:{" "}
-                                    </span>
-                                    <span className="text-[var(--muted)]">{story.then}</span>
-                                  </div>
-                                </div>
-
-                                {/* Functional Requirements */}
-                                {story.functionalRequirements && (
-                                  <div className="flex flex-wrap gap-1">
-                                    {story.functionalRequirements.map((fr) => (
-                                      <span
-                                        key={fr}
-                                        className="rounded bg-[var(--accent)]/10 px-2 py-0.5 font-mono text-xs font-semibold text-[var(--accent)]"
-                                      >
-                                        {fr}
-                                      </span>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+      {activeTab === "nfr" && (
+        <div className="card-surface p-6">
+          <h2 className="mb-6 text-2xl font-bold text-[var(--foreground)]">⚙️ Niet-Functionele Requirements</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b-2 border-[var(--border)]">
+                  <th className="px-4 py-3 text-left font-bold text-[var(--foreground)]">Nr</th>
+                  <th className="px-4 py-3 text-left font-bold text-[var(--foreground)]">Categorie</th>
+                  <th className="px-4 py-3 text-left font-bold text-[var(--foreground)]">Omschrijving</th>
+                </tr>
+              </thead>
+              <tbody>
+                {nonFunctionalRequirements.map((nfr) => (
+                  <tr key={nfr.id} className="border-b border-[var(--border)] hover:bg-[var(--accent)]/5">
+                    <td className="px-4 py-3 font-mono font-semibold text-[var(--accent)]">{nfr.id}</td>
+                    <td className="px-4 py-3">
+                      <span className="rounded-full bg-[var(--accent)]/10 px-3 py-1 text-xs font-semibold text-[var(--accent)]">
+                        {nfr.category}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-[var(--foreground)]">{nfr.description}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
 
-      {/* Cross-Cutting Concerns */}
-      <div className="card-surface space-y-4 p-6">
-        <button
-          type="button"
-          onClick={() => setShowCrossCutting(!showCrossCutting)}
-          className="flex w-full items-center justify-between text-left"
-        >
-          <div className="space-y-2">
-            <h2 className="text-xl font-bold text-[var(--foreground)]">
-              🔒 Cross-Cutting Epics
-            </h2>
-            <p className="text-sm text-[var(--muted)]">
-              Security, performance en andere systeem-brede vereisten
-            </p>
+      {activeTab === "epics" && (
+        <div className="space-y-6">
+          <div className="card-surface p-4">
+            <input
+              type="search"
+              placeholder="Zoek op epic, story ID of keyword..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm text-[var(--foreground)] transition focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+            />
           </div>
-          <span className="text-[var(--muted)]">{showCrossCutting ? "▲" : "▼"}</span>
-        </button>
 
-        {showCrossCutting && (
-          <div className="grid gap-4 border-t border-[var(--border)] pt-4 md:grid-cols-2">
-            {crossCuttingEpics.map((epic) => (
-              <div key={epic.id} className="space-y-3 rounded-lg border border-[var(--border)] p-4">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`rounded-full border px-3 py-1 text-xs font-bold uppercase ${epic.color}`}
+          <div className="space-y-6">
+            {filteredEpics.map((epic) => {
+              const isExpanded = expandedEpic === epic.id;
+
+              return (
+                <div key={epic.id} className="card-surface overflow-hidden">
+                  {/* Epic Header */}
+                  <button
+                    type="button"
+                    onClick={() => setExpandedEpic(isExpanded ? null : epic.id)}
+                    className="w-full p-6 text-left transition hover:bg-[var(--accent)]/5"
                   >
-                    {epic.id}
-                  </span>
-                </div>
-                <h3 className="font-bold text-[var(--foreground)]">{epic.title}</h3>
-                <div className="space-y-2">
-                  {epic.stories.map((story) => (
-                    <div
-                      key={story.id}
-                      className="rounded border border-[var(--border)] bg-[var(--card)] p-3 text-xs"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold text-[var(--accent)]">
-                          {story.id}
-                        </span>
-                        <span className="font-semibold text-[var(--foreground)]">
-                          {story.title}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-[var(--muted)]">{story.description}</p>
-                      {story.functionalRequirements && (
-                        <div className="mt-2 flex gap-1">
-                          {story.functionalRequirements.map((fr) => (
-                            <span
-                              key={fr}
-                              className="rounded bg-[var(--accent)]/10 px-2 py-0.5 font-mono text-xs font-semibold text-[var(--accent)]"
-                            >
-                              {fr}
-                            </span>
-                          ))}
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-center gap-3">
+                          <span className={`rounded-full border px-3 py-1 text-xs font-bold uppercase ${epic.color}`}>
+                            {epic.id}
+                          </span>
+                          <h3 className="text-xl font-bold text-[var(--foreground)]">{epic.title}</h3>
+                          <span className="text-sm text-[var(--muted)]">({epic.stories.length} stories)</span>
                         </div>
-                      )}
+                        <p className="text-sm text-[var(--muted)]">{epic.description}</p>
+                      </div>
+                      <span className="text-2xl text-[var(--muted)]">{isExpanded ? "▲" : "▼"}</span>
                     </div>
-                  ))}
+                  </button>
+
+                  {/* Stories List */}
+                  {isExpanded && (
+                    <div className="space-y-4 border-t border-[var(--border)] bg-[var(--card)]/30 p-6">
+                      {epic.stories.map((story) => (
+                        <div
+                          key={story.id}
+                          className="space-y-3 rounded-lg border border-[var(--border)] bg-[var(--card)] p-5 transition hover:border-[var(--accent)] hover:shadow-md"
+                        >
+                          <div className="flex items-start gap-3">
+                            <span className="font-mono text-sm font-bold text-[var(--accent)]">{story.id}</span>
+                            <div className="flex-1 space-y-3">
+                              <p className="text-sm font-medium text-[var(--foreground)]">{story.title}</p>
+
+                              {/* Acceptance Criteria */}
+                              {story.acceptanceCriteria.length > 0 && (
+                                <div className="space-y-2">
+                                  <h4 className="text-xs font-bold uppercase tracking-wide text-[var(--muted)]">
+                                    ✅ Acceptatiecriteria:
+                                  </h4>
+                                  <ul className="space-y-1">
+                                    {story.acceptanceCriteria.map((criterion, idx) => (
+                                      <li key={idx} className="flex gap-2 text-xs text-[var(--muted)]">
+                                        <span className="text-green-600 dark:text-green-400">•</span>
+                                        <span>{criterion}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* CTA Section */}
       <div className="card-surface flex flex-col gap-6 px-8 py-10 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
