@@ -37,11 +37,11 @@ export default function ModuleDetailPage({ params }: { params: { id: string } })
       .then((data) => {
         setModule(data);
       })
-      .catch((err) => {
+      .catch((error) => {
         if (controller.signal.aborted) {
           return;
         }
-        setError(err instanceof Error ? err.message : "Er is een fout opgetreden");
+        setError(error instanceof Error ? error.message : "Er is een fout opgetreden");
       })
       .finally(() => {
         if (!controller.signal.aborted) {
@@ -315,7 +315,7 @@ function RecommendedVKMs({ currentId }: { currentId: string }) {
         // Filter out current module and take 4 random
         const filtered = (data || []).filter((m) => m.id !== currentId && m.isActive);
         setRecs(pickRandom(filtered, 4));
-      } catch (err) {
+      } catch {
         // Fallback to mock data if API fails
         const mock: VKMModule[] = mockVKMs().filter((m) => m.id !== currentId).slice(0, 4);
         if (!cancelled) setRecs(mock);
@@ -376,7 +376,7 @@ function mockVKMs(): VKMModule[] {
       shortDescription: "Leer creatieve programmeertechnieken.",
       description: "Volledige beschrijving",
       studyCredit: 15,
-      location: "Breda" as any,
+      location: "Breda" as "Breda" | "Den Bosch" | "Tilburg",
       contactId: "c1",
       level: "NLQF5",
       learningOutcomes: "...",
@@ -391,7 +391,7 @@ function mockVKMs(): VKMModule[] {
       shortDescription: "Introductie tot data science.",
       description: "Volledige beschrijving",
       studyCredit: 30,
-      location: "Den Bosch" as any,
+      location: "Den Bosch" as "Breda" | "Den Bosch" | "Tilburg",
       contactId: "c2",
       level: "NLQF6",
       learningOutcomes: "...",
@@ -406,7 +406,7 @@ function mockVKMs(): VKMModule[] {
       shortDescription: "Leer gebruikersgericht ontwerpen.",
       description: "Volledige beschrijving",
       studyCredit: 15,
-      location: "Tilburg" as any,
+      location: "Tilburg" as "Breda" | "Den Bosch" | "Tilburg",
       contactId: "c3",
       level: "NLQF5",
       learningOutcomes: "...",
@@ -421,7 +421,7 @@ function mockVKMs(): VKMModule[] {
       shortDescription: "Hands-on AI labs.",
       description: "Volledige beschrijving",
       studyCredit: 30,
-      location: "Breda" as any,
+      location: "Breda" as "Breda" | "Den Bosch" | "Tilburg",
       contactId: "c4",
       level: "NLQF6",
       learningOutcomes: "...",
@@ -436,7 +436,7 @@ function mockVKMs(): VKMModule[] {
       shortDescription: "Strategieën voor digitale marketing.",
       description: "Volledige beschrijving",
       studyCredit: 15,
-      location: "Den Bosch" as any,
+      location: "Den Bosch" as "Breda" | "Den Bosch" | "Tilburg",
       contactId: "c5",
       level: "NLQF5",
       learningOutcomes: "...",
