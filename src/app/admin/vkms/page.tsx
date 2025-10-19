@@ -31,6 +31,9 @@ export default function AdminVKMsPage() {
 
   const { location, level, studyCredit, isActive } = filters;
 
+  // Simple client-side recommendations derived from loaded VKMs
+  const [recommendations, setRecommendations] = useState<VKMModule[]>([]);
+
   useEffect(() => {
     if (isAdmin) {
       loadVKMs();
@@ -68,6 +71,18 @@ export default function AdminVKMsPage() {
     );
     setFilteredVkms(filtered);
   }, [searchTerm, vkms]);
+
+  // Compute recommendations whenever vkms changes: prefer active, then highest EC
+  useEffect(() => {
+    if (!vkms || vkms.length === 0) {
+      setRecommendations([]);
+      return;
+    }
+
+    const active = vkms.filter((m) => m.isActive);
+    const sorted = [...active, ...vkms.filter((m) => !m.isActive)].sort((a, b) => (b.studyCredit || 0) - (a.studyCredit || 0));
+    setRecommendations(sorted.slice(0, 3));
+  }, [vkms]);
 
   const handleCreateVKM = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -334,6 +349,30 @@ export default function AdminVKMsPage() {
               </select>
             </div>
           </div>
+        </div>
+
+        {/* Recommendations (mock) */}
+        <div className="mb-6 p-4 bg-gradient-to-r from-[var(--card)] to-[var(--background)] border border-[var(--border)] rounded-xl">
+          <h3 className="font-semibold mb-3">Aanbevelingen voor studenten</h3>
+          {recommendations.length === 0 ? (
+            <p className="text-[var(--foreground-muted)]">Geen aanbevelingen beschikbaar</p>
+          ) : (
+            <div className="grid md:grid-cols-3 gap-4">
+              {recommendations.map((rec) => (
+                <div key={rec.id} className="p-3 bg-[var(--background-secondary)] rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="font-semibold">{rec.name}</div>
+                    <div className="text-xs text-[var(--foreground-muted)]">{rec.studyCredit} EC</div>
+                  </div>
+                  <div className="text-sm text-[var(--foreground-muted)] mb-3">{rec.shortDescription}</div>
+                  <div className="flex gap-2">
+                    <Link href={`/modules/${rec.id}`} className="text-sm px-3 py-1 bg-[var(--accent)] text-[var(--accent-foreground)] rounded">Bekijk</Link>
+                    <Link href={`/admin/vkms/${rec.id}`} className="text-sm px-3 py-1 bg-[var(--background-secondary)] rounded">Bewerken</Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* VKMs List */}

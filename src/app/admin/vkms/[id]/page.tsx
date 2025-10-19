@@ -5,8 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useRequireAdmin } from "@/hooks/use-require-admin";
 import { apiGet, adminUpdateVKM, adminDeleteVKM } from "@/lib/api";
-import { VKMModule } from "@/types/vkm";
 import { CreateVKMData } from "@/types/admin";
+import { VKMModule } from "@/types/vkm";
 
 export default function AdminEditVKMPage() {
   const params = useParams();
@@ -19,6 +19,7 @@ export default function AdminEditVKMPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [form, setForm] = useState<Partial<CreateVKMData & { isActive?: boolean }>>({});
+  const [recommendations, setRecommendations] = useState<VKMModule[]>([]);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -31,6 +32,14 @@ export default function AdminEditVKMPage() {
         setError(null);
   const data = await apiGet<VKMModule>(`/vkm/${vkmId}`, { signal: controller.signal });
   setForm(data);
+        // Fetch a few other VKMs for mock recommendations (non-blocking)
+        try {
+          const others = await apiGet<VKMModule[]>(`/vkm`, { signal: controller.signal });
+          const related = (others || []).filter((o) => o.id !== vkmId && (o.location === data.location || o.level === data.level));
+          setRecommendations(related.slice(0, 3));
+        } catch {
+          // ignore recommendation errors
+        }
       } catch (err) {
         if (controller.signal.aborted) return;
         setError(err instanceof Error ? err.message : "Fout bij laden VKM");
@@ -218,6 +227,26 @@ export default function AdminEditVKMPage() {
             </div>
           </form>
         </div>
+          {/* Recommendations mock panel */}
+          <div className="mt-6 p-4 bg-gradient-to-r from-[var(--card)] to-[var(--background)] border border-[var(--border)] rounded-xl">
+            <h3 className="font-semibold mb-3">Gerelateerde VKMs</h3>
+            {recommendations.length === 0 ? (
+              <p className="text-[var(--foreground-muted)]">Geen gerelateerde VKMs gevonden</p>
+            ) : (
+              <div className="grid md:grid-cols-3 gap-4">
+                {recommendations.map((r) => (
+                  <div key={r.id} className="p-3 bg-[var(--background-secondary)] rounded-lg">
+                    <div className="font-semibold">{r.name}</div>
+                    <div className="text-sm text-[var(--foreground-muted)]">{r.shortDescription}</div>
+                    <div className="mt-2 flex gap-2">
+                      <Link href={`/modules/${r.id}`} className="text-sm px-3 py-1 bg-[var(--accent)] text-[var(--accent-foreground)] rounded">Bekijk</Link>
+                      <Link href={`/admin/vkms/${r.id}`} className="text-sm px-3 py-1 bg-[var(--background-secondary)] rounded">Bewerken</Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
       </div>
     </div>
   );
