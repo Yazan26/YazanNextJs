@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-
 export default function PrivacyPage() {
   return (
     <div className="page-container pb-20">

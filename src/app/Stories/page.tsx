@@ -39,6 +39,7 @@ const functionalRequirements: FunctionalRequirement[] = [
   { id: "FR9", description: "Een student kan VKMs toevoegen aan zijn favorietenlijst." },
   { id: "FR10", description: "Een admin kan de favorieten van studenten bekijken." },
   { id: "FR11", description: "De app bevat een Privacy Policy pagina met informatie over gegevensverwerking." },
+  { id: "FR12", description: "Wanneer een student een VKM detailpagina bekijkt, ziet hij vier aanbevolen VKMs als aanbevelingen." },
 ];
 
 const nonFunctionalRequirements: NonFunctionalRequirement[] = [
@@ -52,6 +53,7 @@ const nonFunctionalRequirements: NonFunctionalRequirement[] = [
   { id: "NFR8", category: "Reliability", description: "De app moet stabiel blijven bij meerdere gelijktijdige gebruikers." },
   { id: "NFR9", category: "Privacy", description: "De applicatie voldoet aan de AVG (GDPR)-richtlijnen." },
   { id: "NFR10", category: "Accessibility", description: "Kleuren en contrasten moeten toegankelijk zijn volgens WCAG 2.1-richtlijnen." },
+  { id: "NFR11", category: "Testing", description: "End-to-end (E2E) tests zijn aanwezig voor zowel de NextJS frontend als de NestJS backend. De NestJS E2E-tests worden ook in de CI/CD-pijplijn uitgevoerd tijdens deployment." },
 ];
 
 const epics: Epic[] = [
@@ -125,6 +127,15 @@ const epics: Epic[] = [
         title: "Als admin wil ik VKMs kunnen aanmaken, aanpassen of verwijderen.",
         acceptanceCriteria: [],
       },
+      {
+        id: "US2.6",
+        title: "Als student wil ik op de VKM detailpagina aanbevelingen zien voor andere relevante VKMs.",
+        acceptanceCriteria: [
+          "Vier aanbevolen VKMs worden zichtbaar onder 'Aanbevolen VKMs' in de zijbalk.",
+          "Aanbevelingen moeten de huidige VKM uitsluiten en bij voorkeur actieve VKMs tonen.",
+          "Als de aanbeveling-API niet beschikbaar is, wordt een mock-set van 4 VKMs getoond.",
+        ],
+      },
     ],
   },
   {
@@ -182,6 +193,32 @@ const epics: Epic[] = [
         acceptanceCriteria: [
           "Privacy Policy is bereikbaar via het menu.",
           "Pagina bevat informatie over gegevensverwerking en AVG.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "Epic 5",
+    title: "Testing & CI",
+    description: "Zorgen dat de applicatie betrouwbaar is door middel van end-to-end tests en CI-automatisering.",
+    color: "bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400",
+    stories: [
+      {
+        id: "US5.1",
+        title: "Als ontwikkelaar wil ik E2E-tests voor de NextJS frontend hebben, zodat belangrijke gebruikersflows automatisch gevalideerd worden.",
+        acceptanceCriteria: [
+          "E2E-testen voor de frontend zijn opgenomen in het repository (bijv. Cypress of vergelijkbaar)",
+          "Tests valideren kernflows zoals inloggen, zoeken/filteren en VKM-detail navigatie",
+          "Duidelijke commando's of scripts in package.json om de tests lokaal en headless uit te voeren",
+        ],
+      },
+      {
+        id: "US5.2",
+        title: "Als ontwikkelaar wil ik dat de NestJS backend E2E-tests in CI worden uitgevoerd, zodat regressies vroegtijdig worden gedetecteerd.",
+        acceptanceCriteria: [
+          "E2E-tests voor de backend bestaan en kunnen in CI worden uitgevoerd",
+          "De CI-pijplijn faalt de deployment als E2E-tests niet slagen",
+          "Documentatie beschrijft waar en hoe de backend E2E-tests draaien in de CI",
         ],
       },
     ],

@@ -7,6 +7,7 @@ import { API_AUTH_ENDPOINTS } from "@/lib/config";
 import { apiGet, apiPost } from "@/lib/api";
 import { LoadingState } from "@/components/loading-state";
 import { useRequireAuth } from "@/hooks/use-require-auth";
+// imports above already include API_AUTH_ENDPOINTS and apiGet
 
 export default function ModuleDetailPage({ params }: { params: { id: string } }) {
   const { isAuthenticated, isChecking, canAccess } = useRequireAuth();
@@ -36,11 +37,11 @@ export default function ModuleDetailPage({ params }: { params: { id: string } })
       .then((data) => {
         setModule(data);
       })
-      .catch((err) => {
+      .catch((error) => {
         if (controller.signal.aborted) {
           return;
         }
-        setError(err instanceof Error ? err.message : "Er is een fout opgetreden");
+        setError(error instanceof Error ? error.message : "Er is een fout opgetreden");
       })
       .finally(() => {
         if (!controller.signal.aborted) {
@@ -237,55 +238,212 @@ export default function ModuleDetailPage({ params }: { params: { id: string } })
               </div>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Dates */}
-          <div className="card-surface p-6">
-            <h3 className="mb-4 text-xl font-bold text-[var(--foreground)]">
-              Data
-            </h3>
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm font-semibold text-[var(--foreground-muted)]">
-                  Aangemaakt op
-                </p>
-                <p className="text-[var(--foreground)]">
-                  {new Date(module.createdAt).toLocaleDateString("nl-NL", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </p>
-              </div>
+      {/* Recommendations - Full Width */}
+      <div className="card-surface mt-8 p-8">
+        <h3 className="mb-6 text-2xl font-bold text-[var(--foreground)]">Aanbevolen VKMs</h3>
+        <RecommendedVKMs currentId={module.id} />
+      </div>
 
-              <div>
-                <p className="text-sm font-semibold text-[var(--foreground-muted)]">
-                  Laatst bijgewerkt
-                </p>
-                <p className="text-[var(--foreground)]">
-                  {new Date(module.updatedAt).toLocaleDateString("nl-NL", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </p>
-              </div>
+      {/* CTA */}
+      <div className="card-gradient mt-8 p-8 text-center">
+        <h3 className="mb-3 text-xl font-bold">
+          Geïnteresseerd?
+        </h3>
+        <p className="mb-6 text-sm opacity-90">
+          Neem contact op voor meer informatie over deze module
+        </p>
+        <button className="w-full max-w-xs mx-auto rounded-full bg-white px-6 py-3 font-bold text-[var(--accent)] shadow-lg transition hover:scale-105">
+          Contact opnemen
+        </button>
+      </div>
+
+      {/* Dates - Small Card */}
+      <div className="mt-8 lg:col-span-1">
+        <div className="card-surface p-6">
+          <h3 className="mb-4 text-xl font-bold text-[var(--foreground)]">
+            Data
+          </h3>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm font-semibold text-[var(--foreground-muted)]">
+                Aangemaakt op
+              </p>
+              <p className="text-[var(--foreground)]">
+                {new Date(module.createdAt).toLocaleDateString("nl-NL", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </p>
             </div>
-          </div>
 
-          {/* CTA */}
-          <div className="card-gradient p-6 text-center">
-            <h3 className="mb-3 text-xl font-bold">
-              Geïnteresseerd?
-            </h3>
-            <p className="mb-4 text-sm opacity-90">
-              Neem contact op voor meer informatie over deze module
-            </p>
-            <button className="w-full rounded-full bg-white px-6 py-3 font-bold text-[var(--accent)] shadow-lg transition hover:scale-105">
-              Contact opnemen
-            </button>
+            <div>
+              <p className="text-sm font-semibold text-[var(--foreground-muted)]">
+                Laatst bijgewerkt
+              </p>
+              <p className="text-[var(--foreground)]">
+                {new Date(module.updatedAt).toLocaleDateString("nl-NL", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </p>
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
+}
+
+function RecommendedVKMs({ currentId }: { currentId: string }) {
+  const [recs, setRecs] = useState<VKMModule[] | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchRecs = async () => {
+      setLoading(true);
+      try {
+        // Try API endpoint first
+        const data = await apiGet<VKMModule[]>(`${API_AUTH_ENDPOINTS.recommendations}?limit=8`);
+        if (cancelled) return;
+        // Filter out current module and take 4 random
+        const filtered = (data || []).filter((m) => m.id !== currentId && m.isActive);
+        setRecs(pickRandom(filtered, 4));
+      } catch {
+        // Fallback to mock data if API fails
+        const mock: VKMModule[] = mockVKMs().filter((m) => m.id !== currentId).slice(0, 4);
+        if (!cancelled) setRecs(mock);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    fetchRecs();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentId]);
+
+  if (loading) return <p className="text-sm text-[var(--muted)]">Aanbevelingen laden...</p>;
+  if (!recs || recs.length === 0) return <p className="text-sm text-[var(--muted)]">Geen aanbevelingen beschikbaar.</p>;
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {recs.map((r) => (
+        <Link
+          key={r.id}
+          href={`/modules/${r.id}`}
+          className="block rounded-lg border border-[var(--border)] bg-[var(--card)] p-4 hover:border-[var(--accent)] hover:shadow-lg transition-all hover:-translate-y-1"
+          aria-label={`Bekijk ${r.name}`}
+        >
+          <div className="flex h-full flex-col justify-between">
+            <div>
+              <p className="font-semibold text-[var(--foreground)]">{r.name}</p>
+              <p className="mt-1 text-sm text-[var(--muted)]">{r.location} · {r.studyCredit} EC</p>
+            </div>
+            <div className="mt-3 text-sm text-[var(--muted)]">{r.level}</div>
+          </div>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+function pickRandom<T>(arr: T[], n: number) {
+  const copy = [...arr];
+  const res: T[] = [];
+  while (res.length < n && copy.length > 0) {
+    const idx = Math.floor(Math.random() * copy.length);
+    res.push(copy.splice(idx, 1)[0]);
+  }
+  return res;
+}
+
+function mockVKMs(): VKMModule[] {
+  // Minimal mock entries; keep consistent with VKMModule type
+  const now = new Date().toISOString();
+  return [
+    {
+      id: "MCK101",
+      name: "Introductie Creative Coding",
+      shortDescription: "Leer creatieve programmeertechnieken.",
+      description: "Volledige beschrijving",
+      studyCredit: 15,
+      location: "Breda" as "Breda" | "Den Bosch" | "Tilburg",
+      contactId: "c1",
+      level: "NLQF5",
+      learningOutcomes: "...",
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+      isFavorited: false,
+    },
+    {
+      id: "DS200",
+      name: "Data Science Basics",
+      shortDescription: "Introductie tot data science.",
+      description: "Volledige beschrijving",
+      studyCredit: 30,
+      location: "Den Bosch" as "Breda" | "Den Bosch" | "Tilburg",
+      contactId: "c2",
+      level: "NLQF6",
+      learningOutcomes: "...",
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+      isFavorited: false,
+    },
+    {
+      id: "UX300",
+      name: "UX Design Praktijk",
+      shortDescription: "Leer gebruikersgericht ontwerpen.",
+      description: "Volledige beschrijving",
+      studyCredit: 15,
+      location: "Tilburg" as "Breda" | "Den Bosch" | "Tilburg",
+      contactId: "c3",
+      level: "NLQF5",
+      learningOutcomes: "...",
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+      isFavorited: false,
+    },
+    {
+      id: "AI404",
+      name: "Praktische AI technieken",
+      shortDescription: "Hands-on AI labs.",
+      description: "Volledige beschrijving",
+      studyCredit: 30,
+      location: "Breda" as "Breda" | "Den Bosch" | "Tilburg",
+      contactId: "c4",
+      level: "NLQF6",
+      learningOutcomes: "...",
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+      isFavorited: false,
+    },
+    {
+      id: "MK500",
+      name: "Marketing Strategie",
+      shortDescription: "Strategieën voor digitale marketing.",
+      description: "Volledige beschrijving",
+      studyCredit: 15,
+      location: "Den Bosch" as "Breda" | "Den Bosch" | "Tilburg",
+      contactId: "c5",
+      level: "NLQF5",
+      learningOutcomes: "...",
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+      isFavorited: false,
+    },
+  ];
 }
